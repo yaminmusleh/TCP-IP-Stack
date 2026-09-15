@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/yamenmosleh/tcp-stack/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
