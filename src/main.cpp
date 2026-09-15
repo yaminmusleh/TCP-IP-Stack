@@ -1,7 +1,9 @@
 #include <iostream>
-
+#include "net/tap.hpp"
 int main()
 {
-    std::cout << "TCP/IP stack\n";
-    return 0;
+    TapDevice tap("tap0");
+    
+    std::cout << "TAP device created. Press Enter to exit...\n";
+    std::cin.get();
 }
