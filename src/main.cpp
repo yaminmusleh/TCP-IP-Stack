@@ -1,29 +1,28 @@
 #include <iostream>
+#include <iomanip>
+
 #include "net/tap.hpp"
+#include "net/ethernet.hpp"
 
 int main()
 {
-    std::cout << "Starting program...\n";
-
     TapDevice tap("tap0");
 
-    std::cout << "TAP device created.\n";
     std::cout << "Waiting for an Ethernet frame...\n";
 
     auto frame = tap.readFrame();
 
+    EthernetFrame ethernet = EthernetFrame::parse(frame);
+
     std::cout << "Received frame: "
-          << frame.size()
-          << " bytes\n";
+              << frame.size()
+              << " bytes\n";
 
-    std::cout << "Raw frame:\n";
-
-    for (unsigned char byte : frame)
-    {
-        std::cout << std::hex
-                  << static_cast<int>(byte)
-                  << ' ';
-    }
-
-    std::cout << std::dec << '\n';
+    std::cout << "EtherType: 0x"
+              << std::hex
+              << std::setw(4)
+              << std::setfill('0')
+              << ethernet.etherType()
+              << std::dec
+              << '\n';
 }

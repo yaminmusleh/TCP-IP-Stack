@@ -153,6 +153,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/net/ethernet.o: src/net/ethernet.cpp.o
+.PHONY : src/net/ethernet.o
+
+# target to build an object file
+src/net/ethernet.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.o
+.PHONY : src/net/ethernet.cpp.o
+
+src/net/ethernet.i: src/net/ethernet.cpp.i
+.PHONY : src/net/ethernet.i
+
+# target to preprocess a source file
+src/net/ethernet.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.i
+.PHONY : src/net/ethernet.cpp.i
+
+src/net/ethernet.s: src/net/ethernet.cpp.s
+.PHONY : src/net/ethernet.s
+
+# target to generate assembly for a file
+src/net/ethernet.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.s
+.PHONY : src/net/ethernet.cpp.s
+
 src/net/tap.o: src/net/tap.cpp.o
 .PHONY : src/net/tap.o
 
@@ -189,6 +213,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/net/ethernet.o"
+	@echo "... src/net/ethernet.i"
+	@echo "... src/net/ethernet.s"
 	@echo "... src/net/tap.o"
 	@echo "... src/net/tap.i"
 	@echo "... src/net/tap.s"

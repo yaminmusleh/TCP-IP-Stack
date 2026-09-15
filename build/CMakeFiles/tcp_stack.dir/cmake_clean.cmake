@@ -2,6 +2,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/tcp_stack.dir/link.d"
   "CMakeFiles/tcp_stack.dir/src/main.cpp.o"
   "CMakeFiles/tcp_stack.dir/src/main.cpp.o.d"
+  "CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.o"
+  "CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.o.d"
   "CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o"
   "CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o.d"
   "tcp_stack"
