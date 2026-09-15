@@ -11,6 +11,7 @@
 #include <cerrno>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 TapDevice::TapDevice(const std::string &name)
 {
@@ -41,13 +42,36 @@ TapDevice::TapDevice(const std::string &name)
             std::string("Failed to configure TAP device: ") +
             std::strerror(errno));
     }
-    
+
     name_ = ifr.ifr_name;
+}
+
+std::vector<unsigned char> TapDevice::readFrame()
+{
+
+    std::vector<unsigned char> buffer(1514);
+
+    ssize_t n = read(fd_, buffer.data(), buffer.size());
+    // go into the file, grab as much data as my buffer allows, and tell me exactly how many bytes you actually copied
+    // ssize_t returns either a positive, zero or negative number
+    if (n < 0)
+    {
+        throw std::runtime_error(
+            std::string("Failed to read from TAP: ") +
+            std::strerror(errno));
+    }
+
+    buffer.resize(static_cast<std::size_t>(n)); // this means resize the buffer so it mathces the number of bytes stored in n
+    // this safely convert n from a signed into an unsigned integer
+    // std::size_t converts to unsigned, and because a vector cant be negative we use resize to do this.
+
+    return buffer;
 }
 TapDevice::~TapDevice()
 {
-    if (fd_ > 0)
+    if (fd_ >= 0) // 0 is valid so thats why we include it.
     {
         close(fd_);
+        fd_ = -1;
     }
 }

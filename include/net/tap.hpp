@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <cstddef>
+#include <vector>
 
 class TapDevice
 {
@@ -11,6 +13,8 @@ private:
     std::string name_;
 
 public:
-    explicit TapDevice(const std::string &name); //explicit prevents the constructor from doing a configureDevice
+    explicit TapDevice(const std::string &name); // explicit prevents implicit conversion to TapDevice
     ~TapDevice();
+
+    std::vector<unsigned char> readFrame();
 };
