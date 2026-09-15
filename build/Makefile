@@ -153,6 +153,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/net/tap.o: src/net/tap.cpp.o
+.PHONY : src/net/tap.o
+
+# target to build an object file
+src/net/tap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o
+.PHONY : src/net/tap.cpp.o
+
+src/net/tap.i: src/net/tap.cpp.i
+.PHONY : src/net/tap.i
+
+# target to preprocess a source file
+src/net/tap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tap.cpp.i
+.PHONY : src/net/tap.cpp.i
+
+src/net/tap.s: src/net/tap.cpp.s
+.PHONY : src/net/tap.s
+
+# target to generate assembly for a file
+src/net/tap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tap.cpp.s
+.PHONY : src/net/tap.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -165,6 +189,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/net/tap.o"
+	@echo "... src/net/tap.i"
+	@echo "... src/net/tap.s"
 .PHONY : help
 
 

@@ -11,6 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(tcp_stack
     src/main.cpp
+    src/net/tap.cpp
 )
 
 target_include_directories(tcp_stack
