@@ -13,6 +13,7 @@ add_executable(tcp_stack
     src/main.cpp
     src/net/tap.cpp
     src/net/ethernet.cpp
+    src/net/arp.cpp
 )
 
 target_include_directories(tcp_stack
