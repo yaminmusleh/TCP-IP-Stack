@@ -21,10 +21,13 @@ EthernetFrame EthernetFrame::parse(
 
     frame.ether_type_ = (static_cast<std::uint16_t>(data[12]) << 8) | static_cast<std::uint16_t>(data[13]);
 
+    frame.payload_ =
+        std::vector<unsigned char>(data.begin() + 14, data.end()); // extract what's after the 14th byte
+
     return frame;
 }
 
-// getters:
+// getters: (return what you stored)
 
 const std::vector<unsigned char> &EthernetFrame::destinationMac() const
 {
@@ -37,4 +40,8 @@ const std::vector<unsigned char> &EthernetFrame::sourceMac() const
 std::uint16_t EthernetFrame::etherType() const
 {
     return ether_type_;
+}
+const std::vector<unsigned char> &EthernetFrame::payload() const
+{
+    return payload_;
 }

@@ -25,4 +25,8 @@ int main()
               << ethernet.etherType()
               << std::dec
               << '\n';
+
+    std::cout<< "Payload size: "
+             <<ethernet.payload().size()
+             <<"bytes\n";
 }
