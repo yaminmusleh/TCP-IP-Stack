@@ -1,6 +1,6 @@
 #include "net/arp.hpp"
 #include <stdexcept>
-
+#include <cstring>
 ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 {
 
@@ -20,7 +20,8 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 
     if (packet.hardware_size_ != 6 || packet.protocol_size_ != 4)
     {
-        throw std::runtime_error("Unsupported ARP address sizes");
+        throw std::runtime_error(std::string("Unsupported ARP address sizes") +
+                                 std::strerror(errno));
     }
     // why 4 and 6? because the parser assumes 6 bytes are MAC Address and 4 bytes are IP address
     // If an ARP packet uses different address sizes, our current parser should reject it rather than interpret its bytes incorrectly.

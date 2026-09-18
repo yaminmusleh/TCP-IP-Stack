@@ -17,4 +17,5 @@ public:
     ~TapDevice();
 
     std::vector<unsigned char> readFrame();
+    void writeFrame(const std::vector<unsigned char> &frame);
 };

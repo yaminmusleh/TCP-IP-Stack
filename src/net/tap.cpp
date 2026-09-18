@@ -67,6 +67,23 @@ std::vector<unsigned char> TapDevice::readFrame()
 
     return buffer;
 }
+void TapDevice::writeFrame(const std::vector<unsigned char> &frame)
+{
+    ssize_t n = write(fd_, frame.data(), frame.size());
+
+    if (n < 0)
+    {
+        throw std::runtime_error(
+            std::string("Failed to write to TAP: ") +
+            std::strerror(errno));
+    }
+
+    if (static_cast<std::size_t>(n) != frame.size())
+    {
+        throw std::runtime_error(
+            "Incomplete TAP frame write");
+    }
+}
 TapDevice::~TapDevice()
 {
     if (fd_ >= 0) // 0 is valid so thats why we include it.
