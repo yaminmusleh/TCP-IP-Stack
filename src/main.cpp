@@ -72,6 +72,14 @@ int main()
                   << std::dec
                   << '\n';
 
+        std::cout << "ARP hardware size: "
+                  << static_cast<int>(arp.hardwareSize())
+                  << '\n';
+
+        std::cout << "ARP protocol size: "
+                  << static_cast<int>(arp.protocolSize())
+                  << '\n';
+
         std::cout << "ARP opcode: "
                   << arp.opCode()
                   << '\n';

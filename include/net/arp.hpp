@@ -14,6 +14,8 @@ public:
     std::uint16_t hardwareType() const;
     std::uint16_t protocolType() const;
     std::uint16_t opCode() const;
+    std::uint16_t hardwareSize() const;
+    std::uint16_t protocolSize() const;
 
     MacAddress senderMac() const;
     MacAddress targetMac() const;
@@ -25,6 +27,8 @@ private:
     std::uint16_t hardware_type_ = 0;
     std::uint16_t protocol_type_ = 0;
     std::uint16_t op_code_ = 0;
+    std::uint16_t hardware_size_ = 0;
+    std::uint16_t protocol_size_ = 0;
 
     MacAddress sender_mac_{};
     MacAddress target_mac_{};

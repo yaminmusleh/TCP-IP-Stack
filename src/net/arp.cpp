@@ -4,7 +4,7 @@
 ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 {
 
-    if (data.size() < 28) //i made it 28 because we added sender and target mac and ip 
+    if (data.size() < 28) // i made it 28 because we added sender and target mac and ip
     {
         throw std::runtime_error("ARP Packet is too small");
     }
@@ -14,6 +14,16 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
     packet.hardware_type_ = (static_cast<std::uint16_t>(data[0]) << 8) | static_cast<std::uint16_t>(data[1]);
 
     packet.protocol_type_ = (static_cast<std::uint16_t>(data[2]) << 8) | static_cast<std::uint16_t>(data[3]);
+
+    packet.hardware_size_ = data[4];
+    packet.protocol_size_ = data[5];
+
+    if (packet.hardware_size_ != 6 || packet.protocol_size_ != 4)
+    {
+        throw std::runtime_error("Unsupported ARP address sizes");
+    }
+    // why 4 and 6? because the parser assumes 6 bytes are MAC Address and 4 bytes are IP address
+    // If an ARP packet uses different address sizes, our current parser should reject it rather than interpret its bytes incorrectly.
 
     packet.op_code_ = (static_cast<std::uint16_t>(data[6]) << 8) | static_cast<std::uint16_t>(data[7]);
 
@@ -27,7 +37,8 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
                         (static_cast<std::uint32_t>(data[16]) << 8) |
                         (static_cast<std::uint32_t>(data[17])); // IP addresses are 32 bit long thats why i do shifting
 
-    for (std::size_t i = 0; i < 6; ++i){
+    for (std::size_t i = 0; i < 6; ++i)
+    {
         packet.target_mac_[i] = data[18 + i];
     }
 
@@ -38,7 +49,7 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 
     return packet;
 }
-MacAddress ArpPacket::senderMac() const 
+MacAddress ArpPacket::senderMac() const
 {
     return sender_mac_;
 }
@@ -65,4 +76,12 @@ std::uint16_t ArpPacket::protocolType() const
 std::uint16_t ArpPacket::opCode() const
 {
     return op_code_;
+}
+std::uint16_t ArpPacket::protocolSize() const
+{
+    return protocol_size_;
+}
+std::uint16_t ArpPacket::hardwareSize() const
+{
+    return hardware_size_;
 }
