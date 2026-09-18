@@ -1,6 +1,5 @@
 #include "net/arp.hpp"
 #include <stdexcept>
-#include <cstring>
 ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 {
 
@@ -20,8 +19,7 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
 
     if (packet.hardware_size_ != 6 || packet.protocol_size_ != 4)
     {
-        throw std::runtime_error(std::string("Unsupported ARP address sizes") +
-                                 std::strerror(errno));
+        throw std::runtime_error("Unsupported ARP address sizes");
     }
     // why 4 and 6? because the parser assumes 6 bytes are MAC Address and 4 bytes are IP address
     // If an ARP packet uses different address sizes, our current parser should reject it rather than interpret its bytes incorrectly.
@@ -49,6 +47,29 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
                         (static_cast<std::uint32_t>(data[27]));
 
     return packet;
+}
+
+ArpPacket ArpPacket::createReply(const ArpPacket &request,
+                                 const MacAddress &ourMac,
+                                 std::uint32_t ourIp)
+{
+    ArpPacket reply;
+
+    reply.hardware_type_ = request.hardwareType();
+    reply.protocol_type_ = request.protocolType();
+
+    reply.hardware_size_ = request.hardwareSize();
+    reply.protocol_size_ = request.protocolSize();
+
+    reply.op_code_ = 2;
+
+    reply.sender_mac_ = ourMac;
+    reply.sender_ip_ = ourIp;
+
+    reply.target_mac_ = request.senderMac();
+    reply.target_ip_ = request.senderIp();
+
+    return reply;
 }
 MacAddress ArpPacket::senderMac() const
 {

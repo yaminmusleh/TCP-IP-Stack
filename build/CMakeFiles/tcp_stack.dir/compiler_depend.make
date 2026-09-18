@@ -307,6 +307,7 @@ CMakeFiles/tcp_stack.dir/src/net/arp.cpp.o: /home/yamenmosleh/tcp-stack/src/net/
   /usr/include/c++/15/cstdint \
   /usr/include/c++/15/cstdio \
   /usr/include/c++/15/cstdlib \
+  /usr/include/c++/15/cstring \
   /usr/include/c++/15/cwchar \
   /usr/include/c++/15/debug/assertions.h \
   /usr/include/c++/15/debug/debug.h \
@@ -338,6 +339,8 @@ CMakeFiles/tcp_stack.dir/src/net/arp.cpp.o: /home/yamenmosleh/tcp-stack/src/net/
   /usr/include/stdint.h \
   /usr/include/stdio.h \
   /usr/include/stdlib.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/include/wchar.h \
   /usr/include/x86_64-linux-gnu/asm/errno.h \
   /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h \

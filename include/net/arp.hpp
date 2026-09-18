@@ -11,6 +11,11 @@ class ArpPacket
 public:
     static ArpPacket parse(const std::vector<unsigned char> &data);
 
+    static ArpPacket createReply(
+        const ArpPacket &request,
+        const MacAddress &ourMac,
+        std::uint32_t ourIp);
+
     std::uint16_t hardwareType() const;
     std::uint16_t protocolType() const;
     std::uint16_t opCode() const;
