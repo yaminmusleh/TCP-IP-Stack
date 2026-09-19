@@ -71,6 +71,53 @@ ArpPacket ArpPacket::createReply(const ArpPacket &request,
 
     return reply;
 }
+
+std::vector<unsigned char> ArpPacket::serialize() const
+{
+    std::vector<unsigned char> data(28);
+
+    // hardware section
+    data[0] = static_cast<unsigned char>(hardware_type_ >> 8);
+    data[1] = static_cast<unsigned char>(hardware_type_);
+
+    // protocol section
+    data[2] = static_cast<unsigned char>(protocol_type_ >> 8);
+    data[3] = static_cast<unsigned char>(protocol_type_);
+
+    // address sizes
+    data[4] = hardware_size_;
+    data[5] = protocol_size_;
+
+    // opcode section
+    data[6] = static_cast<unsigned char>(op_code_ >> 8);
+    data[7] = static_cast<unsigned char>(op_code_);
+
+    // sender MAC
+    for (std::size_t i = 0; i < 6; ++i)
+    {
+        data[8 + i] = sender_mac_[i];
+    }
+
+    // sender IP section
+    data[14] = static_cast<unsigned char>(sender_ip_ >> 24);
+    data[15] = static_cast<unsigned char>(sender_ip_ >> 16);
+    data[16] = static_cast<unsigned char>(sender_ip_ >> 8);
+    data[17] = static_cast<unsigned char>(sender_ip_);
+
+    // target MAC
+    for (std::size_t i = 0; i < 6; ++i)
+    {
+        data[18 + i] = target_mac_[i];
+    }
+
+    // target IP
+    data[24] = static_cast<unsigned char>(target_ip_ >> 24);
+    data[25] = static_cast<unsigned char>(target_ip_ >> 16);
+    data[26] = static_cast<unsigned char>(target_ip_ >> 8);
+    data[27] = static_cast<unsigned char>(target_ip_);
+
+    return data;
+}
 MacAddress ArpPacket::senderMac() const
 {
     return sender_mac_;

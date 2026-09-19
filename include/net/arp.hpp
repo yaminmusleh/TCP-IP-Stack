@@ -11,6 +11,8 @@ class ArpPacket
 public:
     static ArpPacket parse(const std::vector<unsigned char> &data);
 
+    std::vector<unsigned char> serialize() const; //serializing
+
     static ArpPacket createReply(
         const ArpPacket &request,
         const MacAddress &ourMac,

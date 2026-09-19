@@ -62,6 +62,12 @@ int main()
         ArpPacket arp =
             ArpPacket::parse(ethernet.payload());
 
+        auto serialized_arp = arp.serialize();
+        
+        std::cout << "Serialized ARP size: "
+                  << serialized_arp.size()
+                  << " bytes\n";
+
         std::cout << "ARP hardware type: "
                   << arp.hardwareType()
                   << '\n';
