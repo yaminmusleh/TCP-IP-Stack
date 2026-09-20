@@ -1,5 +1,5 @@
 #include "net/ethernet.hpp"
-
+#include <iostream>
 #include <stdexcept>
 
 EthernetFrame EthernetFrame::parse(
@@ -27,6 +27,34 @@ EthernetFrame EthernetFrame::parse(
     return frame;
 }
 
+std::vector<unsigned char> EthernetFrame::build(
+    const std::vector<unsigned char> &destinationMac,
+    const std::vector<unsigned char> &sourceMac,
+    std::uint16_t etherType,
+    const std::vector<unsigned char> &payload)
+{
+    if (destinationMac.size() != 6 || sourceMac.size() != 6)
+    {
+        throw std::runtime_error(
+            "MAC address must contain 6 bytes");
+    }
+
+    std::vector<unsigned char> frame;
+
+    frame.reserve(14 + payload.size());
+
+    frame.insert(frame.end(), destinationMac.begin(), destinationMac.end());
+
+    frame.insert(frame.end(), sourceMac.begin(), sourceMac.end());
+
+    // we will push at the end of a vector the etherType bytes
+    frame.push_back(static_cast<unsigned char>(etherType >> 8));
+    frame.push_back(static_cast<unsigned char>(etherType));
+
+    frame.insert(frame.end(), payload.begin(), payload.end());
+
+    return frame;
+}
 // getters: (return what you stored)
 
 const std::vector<unsigned char> &EthernetFrame::destinationMac() const

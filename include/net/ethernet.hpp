@@ -15,6 +15,13 @@ public:                                                                 // build
     const std::vector<unsigned char> &payload() const;
     // these above are considered getters. we will use them in ethernet.cpp
 
+    static std::vector<unsigned char> build(
+        const std::vector<unsigned char> &destinationMac,
+        const std::vector<unsigned char> &sourceMac,
+        std::uint16_t etherType,
+        const std::vector<unsigned char> &payload
+    );
+
 private: // build the setters
     std::vector<unsigned char> destination_mac_;
     std::vector<unsigned char> source_mac_;
