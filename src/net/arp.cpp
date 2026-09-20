@@ -72,6 +72,8 @@ ArpPacket ArpPacket::createReply(const ArpPacket &request,
     return reply;
 }
 
+
+// Serializing method
 std::vector<unsigned char> ArpPacket::serialize() const
 {
     std::vector<unsigned char> data(28);

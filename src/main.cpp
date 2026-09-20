@@ -63,7 +63,26 @@ int main()
             ArpPacket::parse(ethernet.payload());
 
         auto serialized_arp = arp.serialize();
-        
+
+        ArpPacket parsed_again = ArpPacket::parse(serialized_arp);
+
+        if (parsed_again.hardwareType() == arp.hardwareType() &&
+            parsed_again.protocolType() == arp.protocolType() &&
+            parsed_again.hardwareSize() == arp.hardwareSize() &&
+            parsed_again.protocolSize() == arp.protocolSize() &&
+            parsed_again.opCode() == arp.opCode() &&
+            parsed_again.senderMac() == arp.senderMac() &&
+            parsed_again.targetMac() == arp.targetMac() &&
+            parsed_again.senderIp() == arp.senderIp() &&
+            parsed_again.targetIp() == arp.targetIp())
+        {
+            std::cout << "ARP round-trip successful!\n";
+        }
+        else
+        {
+            std::cout << "ARP round-trip failed!\n";
+        }
+
         std::cout << "Serialized ARP size: "
                   << serialized_arp.size()
                   << " bytes\n";
