@@ -120,5 +120,24 @@ int main()
 
         std::cout << "Target IP: ";
         printIp(arp.targetIp());
+
+        // ARP REPLY CONSTRUCTION
+        MacAddress ourMac = {
+            0x56, 0x1d, 0x27, 0x4d, 0xbf, 0x83};
+
+        std::uint32_t ourIp =
+            (10u << 24) |
+            (0u << 16) |
+            (0u << 8) |
+            1u;
+
+        ArpPacket reply =
+            ArpPacket::createReply(arp, ourMac, ourIp);
+
+        auto replyPayLoad = reply.serialize();
+
+        std::cout << "Reply Payload Size: "
+                  << replyPayLoad.size()
+                  << " bytes\n";
     }
 }
