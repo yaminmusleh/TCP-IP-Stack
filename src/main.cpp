@@ -163,6 +163,10 @@ int main()
             0x0806,
             replyPayLoad);
 
+        tap.writeFrame(replyFrame);
+
+        std::cout<<"ARP Reply Sent!\n";
+
         std::cout << "Complete reply frame size: "
                   << replyFrame.size()
                   << " bytes\n";
