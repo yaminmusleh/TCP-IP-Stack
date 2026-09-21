@@ -54,10 +54,6 @@ int main()
 
         auto replyPayLoad = reply.serialize();
 
-        std::cout << "Reply Payload Size: "
-                  << replyPayLoad.size()
-                  << " bytes\n";
-
         // MacAddress is std::array so i need to convert it into vector
         std::vector<unsigned char> destinationMac = {
             reply.targetMac()[0],
