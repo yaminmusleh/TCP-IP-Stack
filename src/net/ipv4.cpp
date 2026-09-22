@@ -11,7 +11,7 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     Ipv4Packet packet;
 
     packet.version_ = data[0] >> 4;
-    packet.header_length_ = data[1] & 0x0F;
+    packet.header_length_ = data[0] & 0x0F;
 
     if (packet.version_ != 4)
     {
@@ -22,6 +22,8 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     {
         throw std::runtime_error("Invalid IPv4 header length");
     }
+
+    packet.tos_ = data[1];
 
     return packet;
 }
