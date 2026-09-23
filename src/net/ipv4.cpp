@@ -42,5 +42,21 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     packet.ttl_ = data[8];
     packet.protocol_ = data[9];
 
+    packet.checksum_ =
+        (static_cast<std::uint16_t>(data[10]) << 8) |
+        static_cast<std::uint16_t>(data[11]);
+
+    packet.source_ip_ =
+        (static_cast<std::uint32_t>(data[12]) << 24) |
+        (static_cast<std::uint32_t>(data[13]) << 16) |
+        (static_cast<std::uint32_t>(data[14]) << 8) |
+        static_cast<std::uint32_t>(data[15]);
+
+    packet.destination_ip_ =
+        (static_cast<std::uint32_t>(data[16]) << 24) |
+        (static_cast<std::uint32_t>(data[17]) << 16) |
+        (static_cast<std::uint32_t>(data[18]) << 8) |
+        static_cast<std::uint32_t>(data[19]);
+
     return packet;
 }
