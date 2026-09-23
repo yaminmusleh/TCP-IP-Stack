@@ -39,5 +39,8 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
 
     packet.fragment_offset_ = flagsAndOffset & 0x1FFF;
 
+    packet.ttl_ = data[8];
+    packet.protocol_ = data[9];
+
     return packet;
 }
