@@ -66,6 +66,10 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
         throw std::runtime_error("IPV4 packet is truncated");
     }
 
+    std::size_t payloadSize = packet.total_length_ - headerSize; // calculating the size of payload
+
+    packet.payload_.assign(data.begin() + headerSize, data.begin() + packet.total_length_); // extraction (begin from headerSize and end at total length)
+
     if (packet.version_ != 4)
     {
         throw std::runtime_error("Not an IPv4 packet");
