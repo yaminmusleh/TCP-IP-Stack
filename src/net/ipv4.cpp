@@ -38,6 +38,17 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     packet.version_ = data[0] >> 4;
     packet.header_length_ = data[0] & 0x0F;
 
+    if (packet.version_ != 4)
+    {
+        throw std::runtime_error("Not an IPv4 packet");
+    }
+
+    if (packet.header_length_ != 5)
+    {
+        throw std::runtime_error(
+            "IPv4 options are not supported");
+    }
+
     std::size_t headerSize =
         static_cast<std::size_t>(packet.header_length_) * 4;
 
@@ -47,49 +58,16 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
             "IPv4 packet is smaller than its header");
     }
 
-    std::vector<unsigned char> header(
-        data.begin(),
-        data.begin() + headerSize);
-
-    if (internetChecksum(header) != 0)
-    {
-        throw std::runtime_error(
-            "Invalid IPv4 header checksum");
-    }
-
-    if (packet.total_length_ < headerSize)
-    {
-        throw std::runtime_error("IPV4 total length is smaller than header");
-    }
-    if (data.size() < packet.total_length_)
-    {
-        throw std::runtime_error("IPV4 packet is truncated");
-    }
-
-    std::size_t payloadSize = packet.total_length_ - headerSize; // calculating the size of payload
-
-    packet.payload_.assign(data.begin() + headerSize, data.begin() + packet.total_length_); // extraction (begin from headerSize and end at total length)
-
-    if (packet.version_ != 4)
-    {
-        throw std::runtime_error("Not an IPv4 packet");
-    }
-
-    if (packet.header_length_ < 5)
-    {
-        throw std::runtime_error("Invalid IPv4 header length");
-    }
-
     packet.tos_ = data[1];
 
-    packet.total_length_ = (static_cast<std::uint16_t>(data[2]) << 8) | // the OR (|) sums the bits
+    packet.total_length_ = (static_cast<std::uint16_t>(data[2]) << 8) | // the OR (|) does a bitwise or operation
                            (static_cast<std::uint16_t>(data[3]));
 
     packet.identification_ =
         (static_cast<std::uint16_t>(data[4]) << 8) |
         static_cast<std::uint16_t>(data[5]);
 
-    std::uint16_t flagsAndOffset = (static_cast<std::uint16_t>(data[6])) |
+    std::uint16_t flagsAndOffset = (static_cast<std::uint16_t>(data[6]) << 8) |
                                    (static_cast<std::uint16_t>(data[7]));
 
     packet.flags_ = static_cast<std::uint8_t>(flagsAndOffset >> 13);
@@ -114,6 +92,27 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
         (static_cast<std::uint32_t>(data[17]) << 16) |
         (static_cast<std::uint32_t>(data[18]) << 8) |
         static_cast<std::uint32_t>(data[19]);
+
+    std::vector<unsigned char> header(
+        data.begin(),
+        data.begin() + headerSize);
+
+    if (internetChecksum(header) != 0)
+    {
+        throw std::runtime_error(
+            "Invalid IPv4 header checksum");
+    }
+
+    if (packet.total_length_ < headerSize)
+    {
+        throw std::runtime_error("IPV4 total length is smaller than header");
+    }
+    if (data.size() < packet.total_length_)
+    {
+        throw std::runtime_error("IPV4 packet is truncated");
+    }
+
+    packet.payload_.assign(data.begin() + headerSize, data.begin() + packet.total_length_); // extraction (begin from headerSize and end at total length)
 
     return packet;
 }
