@@ -22,7 +22,7 @@ std::uint16_t internetChecksum(const std::vector<unsigned char> &data)
             sum = (sum & 0xFFFF) + (sum >> 16);
         }
     }
-    
+
     return static_cast<std::uint16_t>(~sum);
 }
 
@@ -37,6 +37,25 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
 
     packet.version_ = data[0] >> 4;
     packet.header_length_ = data[0] & 0x0F;
+
+    std::size_t headerSize =
+        static_cast<std::size_t>(packet.header_length_) * 4;
+
+    if (data.size() < headerSize)
+    {
+        throw std::runtime_error(
+            "IPv4 packet is smaller than its header");
+    }
+
+    std::vector<unsigned char> header(
+        data.begin(),
+        data.begin() + headerSize);
+
+    if (internetChecksum(header) != 0)
+    {
+        throw std::runtime_error(
+            "Invalid IPv4 header checksum");
+    }
 
     if (packet.version_ != 4)
     {
