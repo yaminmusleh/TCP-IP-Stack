@@ -57,6 +57,15 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
             "Invalid IPv4 header checksum");
     }
 
+    if (packet.total_length_ < headerSize)
+    {
+        throw std::runtime_error("IPV4 total length is smaller than header");
+    }
+    if (data.size() < packet.total_length_)
+    {
+        throw std::runtime_error("IPV4 packet is truncated");
+    }
+
     if (packet.version_ != 4)
     {
         throw std::runtime_error("Not an IPv4 packet");
