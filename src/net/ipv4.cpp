@@ -1,5 +1,6 @@
 #include "net/ipv4.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 std::uint16_t internetChecksum(const std::vector<unsigned char> &data)
 {
@@ -151,14 +152,6 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
     data[10] = 0;
     data[11] = 0;
 
-    std::vector<unsigned char> header(data.begin(), data.begin() + 20);
-
-    std::uint16_t checksum = internetChecksum(header);
-
-    data[10] = static_cast<unsigned char>(checksum >> 8);
-
-    data[11] = static_cast<unsigned char>(checksum & 0xFF);
-
     data[12] =
         static_cast<unsigned char>(source_ip_ >> 24);
 
@@ -182,6 +175,19 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
 
     data[19] =
         static_cast<unsigned char>(destination_ip_ & 0xFF);
+
+    std::vector<unsigned char> header(data.begin(), data.begin() + 20);
+
+    std::uint16_t checksum = internetChecksum(header);
+
+    data[10] = static_cast<unsigned char>(checksum >> 8);
+
+    data[11] = static_cast<unsigned char>(checksum & 0xFF);
+
+    std::copy(
+        payload_.begin(),
+        payload_.end(),
+        data.begin() + 20);
 
     return data;
 }
