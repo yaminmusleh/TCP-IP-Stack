@@ -145,5 +145,43 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
     data[7] =
         static_cast<unsigned char>(flagsAndOffset & 0xFF);
 
+    data[8] = ttl_;
+    data[9] = protocol_;
+
+    data[10] = 0;
+    data[11] = 0;
+
+    std::vector<unsigned char> header(data.begin(), data.begin() + 20);
+
+    std::uint16_t checksum = internetChecksum(header);
+
+    data[10] = static_cast<unsigned char>(checksum >> 8);
+
+    data[11] = static_cast<unsigned char>(checksum & 0xFF);
+
+    data[12] =
+        static_cast<unsigned char>(source_ip_ >> 24);
+
+    data[13] =
+        static_cast<unsigned char>((source_ip_ >> 16) & 0xFF);
+
+    data[14] =
+        static_cast<unsigned char>((source_ip_ >> 8) & 0xFF);
+
+    data[15] =
+        static_cast<unsigned char>(source_ip_ & 0xFF);
+
+    data[16] =
+        static_cast<unsigned char>(destination_ip_ >> 24);
+
+    data[17] =
+        static_cast<unsigned char>((destination_ip_ >> 16) & 0xFF);
+
+    data[18] =
+        static_cast<unsigned char>((destination_ip_ >> 8) & 0xFF);
+
+    data[19] =
+        static_cast<unsigned char>(destination_ip_ & 0xFF);
+
     return data;
 }
