@@ -128,5 +128,22 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
 
     data[3] = static_cast<unsigned char>(total_length_ & 0xFF);
 
+    data[4] =
+        static_cast<unsigned char>(identification_ >> 8);
+
+    data[5] =
+        static_cast<unsigned char>(identification_ & 0xFF);
+
+    std::uint16_t flagsAndOffset =
+        static_cast<std::uint16_t>(
+            (static_cast<std::uint16_t>(flags_) << 13) |
+            fragment_offset_);
+
+    data[6] =
+        static_cast<unsigned char>(flagsAndOffset >> 8);
+
+    data[7] =
+        static_cast<unsigned char>(flagsAndOffset & 0xFF);
+
     return data;
 }
