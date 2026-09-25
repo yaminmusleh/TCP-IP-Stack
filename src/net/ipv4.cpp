@@ -120,7 +120,13 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
 {
     std::vector<unsigned char> data(20 + payload_.size());
 
-    data[0]=static_cast<unsigned char>((version_ <<4) | header_length_);
+    data[0] = static_cast<unsigned char>((version_ << 4) | header_length_);
+
+    data[1] = tos_;
+
+    data[2] = static_cast<unsigned char>(total_length_ >> 8);
+
+    data[3] = static_cast<unsigned char>(total_length_ & 0xFF);
 
     return data;
 }
