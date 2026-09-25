@@ -113,6 +113,14 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     }
 
     packet.payload_.assign(data.begin() + headerSize, data.begin() + packet.total_length_); // extraction (begin from headerSize and end at total length)
-
     return packet;
+}
+
+std::vector<unsigned char> Ipv4Packet::serialize() const
+{
+    std::vector<unsigned char> data(20 + payload_.size());
+
+    data[0]=static_cast<unsigned char>((version_ <<4) | header_length_);
+
+    return data;
 }
