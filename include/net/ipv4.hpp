@@ -4,8 +4,7 @@
 class Ipv4Packet
 {
 public:
-    static Ipv4Packet parse(
-        const std::vector<unsigned char> &data);
+    static Ipv4Packet parse(const std::vector<unsigned char> &data);
 
     std::vector<unsigned char> serialize() const;
 
