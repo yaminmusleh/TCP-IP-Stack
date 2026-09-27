@@ -125,9 +125,11 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
 
     data[1] = tos_;
 
-    data[2] = static_cast<unsigned char>(total_length_ >> 8);
+    std::uint16_t totalLength = static_cast<std::uint16_t>(20 + payload_.size()); // total length handling
 
-    data[3] = static_cast<unsigned char>(total_length_ & 0xFF);
+    data[2] = static_cast<unsigned char>(totalLength >> 8);
+
+    data[3] = static_cast<unsigned char>(totalLength & 0xFF);
 
     data[4] =
         static_cast<unsigned char>(identification_ >> 8);
