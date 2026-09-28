@@ -15,11 +15,15 @@ public:
     std::uint8_t code() const;
     std::uint16_t checksum() const;
     std::vector<unsigned char> &payload() const;
+    std::uint16_t identifier() const;
+    std::uint16_t sequence() const;
 
     // setters
 private:
     std::uint8_t type_ = 0;
     std::uint8_t code_ = 0;
     std::uint16_t checksum_ = 0;
+    std::uint16_t identifier_ = 0;
+    std::uint16_t sequence_ = 0;
     std::vector<unsigned char> payload_;
 };
