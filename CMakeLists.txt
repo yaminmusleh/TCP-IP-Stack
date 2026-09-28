@@ -14,6 +14,9 @@ add_executable(tcp_stack
     src/net/tap.cpp
     src/net/ethernet.cpp
     src/net/arp.cpp
+    src/net/ipv4.cpp
+    src/net/icmpv4.cpp
+    src/net/checksum.cpp
 )
 
 target_include_directories(tcp_stack
