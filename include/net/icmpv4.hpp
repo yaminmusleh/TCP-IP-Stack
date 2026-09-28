@@ -20,6 +20,6 @@ public:
 private:
     std::uint8_t type_ = 0;
     std::uint8_t code_ = 0;
-    std::uint16_t checksum = 0;
+    std::uint16_t checksum_ = 0;
     std::vector<unsigned char> payload_;
 };
