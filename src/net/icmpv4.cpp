@@ -2,6 +2,7 @@
 #include "net/checksum.hpp"
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
 {
@@ -30,4 +31,33 @@ Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
         data.end());
 
     return packet;
+}
+
+std::vector<unsigned char> Icmpv4Packet::serialize() const
+{
+    std::vector<unsigned char> data(
+        4 + payload_.size());
+
+    data[0] = type_;
+    data[1] = code_;
+
+    // Checksum must be zero while calculating it.
+    data[2] = 0;
+    data[3] = 0;
+
+    std::copy(
+        payload_.begin(),
+        payload_.end(),
+        data.begin() + 4);
+
+    std::uint16_t checksum =
+        internetChecksum(data);
+
+    data[2] =
+        static_cast<unsigned char>(checksum >> 8);
+
+    data[3] =
+        static_cast<unsigned char>(checksum & 0xFF);
+
+    return data;
 }
