@@ -26,9 +26,33 @@ Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
         throw std::runtime_error("Invalid ICMPv4 checksum");
     }
 
-    packet.payload_.assign(
-        data.begin() + 4,
-        data.end());
+    if (packet.type_ == 8 || packet.type_ == 0)
+    {
+        if (data.size() < 8)
+        {
+            throw std::runtime_error(
+                "ICMP Echo packet is too small");
+        }
+        
+        packet.identifier_ =
+            (static_cast<std::uint16_t>(data[4]) << 8) |
+            static_cast<std::uint16_t>(data[5]);
+
+        packet.sequence_ =
+            (static_cast<std::uint16_t>(data[6]) << 8) |
+            static_cast<std::uint16_t>(data[7]);
+
+        packet.payload_.assign(
+            data.begin() + 8,
+            data.end());
+    }
+
+    else
+    {
+        packet.payload_.assign(
+            data.begin() + 4,
+            data.end());
+    }
 
     return packet;
 }
