@@ -59,8 +59,13 @@ Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
 
 std::vector<unsigned char> Icmpv4Packet::serialize() const
 {
+    bool isEcho =
+        (type_ == 8 || type_ == 0);
+
+    std::size_t headerSize = isEcho ? 8 : 4;
+
     std::vector<unsigned char> data(
-        4 + payload_.size());
+        headerSize + payload_.size());
 
     data[0] = type_;
     data[1] = code_;
@@ -69,10 +74,25 @@ std::vector<unsigned char> Icmpv4Packet::serialize() const
     data[2] = 0;
     data[3] = 0;
 
+    if (isEcho)
+    {
+        data[4] =
+            static_cast<unsigned char>(identifier_ >> 8);
+
+        data[5] =
+            static_cast<unsigned char>(identifier_ & 0xFF);
+
+        data[6] =
+            static_cast<unsigned char>(sequence_ >> 8);
+
+        data[7] =
+            static_cast<unsigned char>(sequence_ & 0xFF);
+    }
+
     std::copy(
         payload_.begin(),
         payload_.end(),
-        data.begin() + 4);
+        data.begin() + headerSize);
 
     std::uint16_t checksum =
         internetChecksum(data);
@@ -84,4 +104,34 @@ std::vector<unsigned char> Icmpv4Packet::serialize() const
         static_cast<unsigned char>(checksum & 0xFF);
 
     return data;
+}
+
+std::uint8_t Icmpv4Packet::type() const
+{
+    return type_;
+}
+
+std::uint8_t Icmpv4Packet::code() const
+{
+    return code_;
+}
+
+std::uint16_t Icmpv4Packet::checksum() const
+{
+    return checksum_;
+}
+
+std::uint16_t Icmpv4Packet::identifier() const
+{
+    return identifier_;
+}
+
+std::uint16_t Icmpv4Packet::sequence() const
+{
+    return sequence_;
+}
+
+const std::vector<unsigned char> &Icmpv4Packet::payload() const
+{
+    return payload_;
 }

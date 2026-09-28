@@ -14,9 +14,9 @@ public:
     std::uint8_t type() const;
     std::uint8_t code() const;
     std::uint16_t checksum() const;
-    std::vector<unsigned char> &payload() const;
     std::uint16_t identifier() const;
     std::uint16_t sequence() const;
+    const std::vector<unsigned char> &payload() const;
 
     // setters
 private:
