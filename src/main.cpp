@@ -2,17 +2,17 @@
 #include "net/tap.hpp"
 #include "net/ethernet.hpp"
 #include "net/arp.hpp"
-
+#include "net/ipv4.hpp"
 
 int main()
 {
     TapDevice tap("tap0");
 
     std::uint32_t ourIp =
-            (10u << 24) |
-            (0u << 16) |
-            (0u << 8) |
-            1u;
+        (10u << 24) |
+        (0u << 16) |
+        (0u << 8) |
+        1u;
 
     while (true)
     {
@@ -23,9 +23,22 @@ int main()
         EthernetFrame ethernet =
             EthernetFrame::parse(raw_frame);
 
-        if (ethernet.etherType() != 0x0806) // since we said the ARP Frame is 0x0806, anything else is not an ARP frame.
+        if (ethernet.etherType() == 0x0800) // checking ipv4 frames
         {
-            std::cout << "Not an ARP frame. Ignoring.\n";
+            std::cout << "Received an IPv4 frame\n";
+            Ipv4Packet ipv4 = Ipv4Packet::parse(ethernet.payload());
+            std::cout << "IPv4 packet received.\n";
+            continue;
+        }
+
+        if (ethernet.etherType() != 0x0806)
+        {
+            std::cout << "Unknown EtherType: 0x"
+                      << std::hex
+                      << ethernet.etherType()
+                      << std::dec
+                      << "\n";
+
             continue;
         }
 
@@ -37,7 +50,6 @@ int main()
             std::cout << "Not an ARP request. Ignoring.\n";
             continue;
         }
-        
 
         if (arp.targetIp() != ourIp)
         {

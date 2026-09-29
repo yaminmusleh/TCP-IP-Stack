@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-
 Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
 {
     if (data.size() < 20)
@@ -22,10 +21,10 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
         throw std::runtime_error("Not an IPv4 packet");
     }
 
-    if (packet.header_length_ != 5)
+    if (packet.header_length_ < 5)
     {
         throw std::runtime_error(
-            "IPv4 options are not supported");
+            "Invalid IPv4 header length");
     }
 
     std::size_t headerSize =
