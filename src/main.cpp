@@ -3,6 +3,7 @@
 #include "net/ethernet.hpp"
 #include "net/arp.hpp"
 #include "net/ipv4.hpp"
+#include "net/icmpv4.hpp"
 
 int main()
 {
@@ -23,11 +24,43 @@ int main()
         EthernetFrame ethernet =
             EthernetFrame::parse(raw_frame);
 
-        if (ethernet.etherType() == 0x0800) // checking ipv4 frames
+        if (ethernet.etherType() == 0x0800)
         {
             std::cout << "Received an IPv4 frame\n";
-            Ipv4Packet ipv4 = Ipv4Packet::parse(ethernet.payload());
+
+            Ipv4Packet ipv4 =
+                Ipv4Packet::parse(ethernet.payload());
+
             std::cout << "IPv4 packet received.\n";
+
+            std::cout << "Source IP: "
+                      << ipv4.sourceIp()
+                      << "\n";
+
+            std::cout << "Destination IP: "
+                      << ipv4.destinationIp()
+                      << "\n";
+
+            std::cout << "Protocol: "
+                      << static_cast<int>(ipv4.protocol())
+                      << "\n";
+
+            if (ipv4.protocol() == 1)
+            {
+                Icmpv4Packet icmp =
+                    Icmpv4Packet::parse(ipv4.payload());
+
+                std::cout << "ICMP packet received.\n";
+
+                std::cout << "ICMP type: "
+                          << static_cast<int>(icmp.type())
+                          << "\n";
+
+                std::cout << "ICMP code: "
+                          << static_cast<int>(icmp.code())
+                          << "\n";
+            }
+
             continue;
         }
 

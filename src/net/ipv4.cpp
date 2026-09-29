@@ -170,3 +170,22 @@ std::vector<unsigned char> Ipv4Packet::serialize() const
 
     return data;
 }
+
+std::uint32_t Ipv4Packet::sourceIp() const
+{
+    return source_ip_;
+}
+
+std::uint32_t Ipv4Packet::destinationIp() const
+{
+    return destination_ip_;
+}
+
+std::uint8_t Ipv4Packet::protocol() const
+{
+    return protocol_;
+}
+const std::vector<unsigned char> &Ipv4Packet::payload() const
+{
+    return payload_;
+}
