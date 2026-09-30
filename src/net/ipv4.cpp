@@ -94,6 +94,35 @@ Ipv4Packet Ipv4Packet::parse(const std::vector<unsigned char> &data)
     return packet;
 }
 
+// reply creation:
+
+Ipv4Packet Ipv4Packet::createReply(const Ipv4Packet &request, const std::vector<unsigned char> &payload)
+{
+    Ipv4Packet reply;
+
+    reply.version_ = 4;
+    reply.header_length_ = 5;
+
+    reply.tos_ = request.tos_;
+
+    reply.total_length_ =
+        static_cast<std::uint16_t>(20 + payload.size());
+
+    reply.identification_ = 0;
+    reply.flags_ = 0;
+    reply.fragment_offset_ = 0;
+
+    reply.ttl_ = 64;
+
+    reply.protocol_ = request.protocol_;
+    reply.source_ip_ = request.destination_ip_;
+    reply.destination_ip_ = request.source_ip_;
+
+    reply.payload_ = payload;
+
+    return reply;
+}
+
 std::vector<unsigned char> Ipv4Packet::serialize() const
 {
     std::vector<unsigned char> data(20 + payload_.size());

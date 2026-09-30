@@ -33,7 +33,7 @@ Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
             throw std::runtime_error(
                 "ICMP Echo packet is too small");
         }
-        
+
         packet.identifier_ =
             (static_cast<std::uint16_t>(data[4]) << 8) |
             static_cast<std::uint16_t>(data[5]);
@@ -55,6 +55,22 @@ Icmpv4Packet Icmpv4Packet::parse(const std::vector<unsigned char> &data)
     }
 
     return packet;
+}
+
+Icmpv4Packet Icmpv4Packet::createEchoReply(const Icmpv4Packet &request)
+{
+
+    Icmpv4Packet reply;
+
+    reply.type_ = 0;
+    reply.code_ = 0;
+
+    reply.identifier_ = request.identifier_;
+    reply.sequence_ = request.sequence_;
+
+    reply.payload_ = request.payload_;
+
+    return reply;
 }
 
 std::vector<unsigned char> Icmpv4Packet::serialize() const

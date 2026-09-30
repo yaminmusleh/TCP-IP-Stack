@@ -8,6 +8,9 @@ class Icmpv4Packet
 public:
     static Icmpv4Packet parse(const std::vector<unsigned char> &data);
 
+    static Icmpv4Packet createEchoReply(
+        const Icmpv4Packet &request);
+
     std::vector<unsigned char> serialize() const;
 
     // getters

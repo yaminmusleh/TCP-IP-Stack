@@ -6,6 +6,8 @@ class Ipv4Packet
 public:
     static Ipv4Packet parse(const std::vector<unsigned char> &data);
 
+    static Ipv4Packet createReply(const Ipv4Packet &request, const std::vector<unsigned char> &payload);
+
     std::vector<unsigned char> serialize() const;
 
     std::uint8_t version() const;
