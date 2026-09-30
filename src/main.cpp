@@ -59,6 +59,25 @@ int main()
                 std::cout << "ICMP code: "
                           << static_cast<int>(icmp.code())
                           << "\n";
+
+                if (icmp.type() == 8 && icmp.code() == 0)
+                {
+                    Icmpv4Packet replyIcmp =
+                        Icmpv4Packet::createEchoReply(icmp);
+
+                    auto replyIcmpPayload =
+                        replyIcmp.serialize();
+
+                    Ipv4Packet replyIpv4 =
+                        Ipv4Packet::createReply(
+                            ipv4,
+                            replyIcmpPayload);
+
+                    auto replyIpv4Payload =
+                        replyIpv4.serialize();
+
+                    std::cout << "ICMP Echo Reply created.\n";
+                }
             }
 
             continue;
