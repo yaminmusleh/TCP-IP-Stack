@@ -77,6 +77,16 @@ int main()
                         replyIpv4.serialize();
 
                     std::cout << "ICMP Echo Reply created.\n";
+
+                    auto replyFrame = EthernetFrame::build(
+                        ethernet.sourceMac(), // because we are replying to the source of the request
+                        ethernet.destinationMac(),
+                        0x0800,
+                        replyIpv4Payload);
+
+                    tap.writeFrame(replyFrame);
+                    
+                    std::cout << "ICMP Echo Reply sent.\n";
                 }
             }
 
