@@ -12,7 +12,6 @@ constexpr std::uint16_t ETHERTYPE_IPV6 = 0X86DD;
 constexpr std::uint8_t IP_PROTOCOL_ICMP = 1;
 
 constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
-constexpr std::uint8_t ICMP_ECHO_REPLY = 0;
 
 void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t ourIp)
 {
@@ -129,7 +128,7 @@ int main()
         EthernetFrame ethernet =
             EthernetFrame::parse(raw_frame);
 
-        if(ethernet.etherType() == ETHERTYPE_IPV4)
+        if (ethernet.etherType() == ETHERTYPE_IPV4)
         {
             Ipv4Handler(ethernet, tap);
             continue;
