@@ -14,7 +14,7 @@ public:
     std::uint16_t destinationPort() const;
     std::uint16_t length() const;
     std::uint16_t checksum() const;
-    std::vector<unsigned char> &payload() const;
+    const std::vector<unsigned char> &payload() const;
 
 private:
     std::uint16_t sourcePort_ = 0;
