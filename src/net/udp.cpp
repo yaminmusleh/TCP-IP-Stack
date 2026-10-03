@@ -57,3 +57,30 @@ const std::vector<unsigned char> &UdpPacket::payload() const
 {
     return payload_;
 }
+
+std::vector<unsigned char> UdpPacket::serialize() const
+{
+    std::vector<unsigned char> data;
+    data.reserve(8 + payload_.size());
+
+    // Source Port
+    data.push_back(static_cast<unsigned char>(sourcePort_ >> 8));
+    data.push_back(static_cast<unsigned char>(sourcePort_));
+
+    // Destination Port
+    data.push_back(static_cast<unsigned char>(destinationPort_ >> 8));
+    data.push_back(static_cast<unsigned char>(destinationPort_));
+
+    // Length
+    data.push_back(static_cast<unsigned char>(length_ >> 8));
+    data.push_back(static_cast<unsigned char>(length_));
+
+    // Checksum
+    data.push_back(static_cast<unsigned char>(checksum_ >> 8));
+    data.push_back(static_cast<unsigned char>(checksum_));
+
+    // Payload
+    data.insert(data.end(), payload_.begin(), payload_.end());
+
+    return data;
+}
