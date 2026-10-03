@@ -129,6 +129,19 @@ tcp_stack/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/build
 .PHONY : tcp_stack/fast
 
+#=============================================================================
+# Target rules for targets named udp_test
+
+# Build rule for target.
+udp_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 udp_test
+.PHONY : udp_test
+
+# fast build rule for target.
+udp_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/build
+.PHONY : udp_test/fast
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -297,6 +310,57 @@ src/net/tap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tap.cpp.s
 .PHONY : src/net/tap.cpp.s
 
+src/net/udp.o: src/net/udp.cpp.o
+.PHONY : src/net/udp.o
+
+# target to build an object file
+src/net/udp.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/udp.cpp.o
+.PHONY : src/net/udp.cpp.o
+
+src/net/udp.i: src/net/udp.cpp.i
+.PHONY : src/net/udp.i
+
+# target to preprocess a source file
+src/net/udp.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/udp.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/udp.cpp.i
+.PHONY : src/net/udp.cpp.i
+
+src/net/udp.s: src/net/udp.cpp.s
+.PHONY : src/net/udp.s
+
+# target to generate assembly for a file
+src/net/udp.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/udp.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/udp.cpp.s
+.PHONY : src/net/udp.cpp.s
+
+tests/udp_test.o: tests/udp_test.cpp.o
+.PHONY : tests/udp_test.o
+
+# target to build an object file
+tests/udp_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/tests/udp_test.cpp.o
+.PHONY : tests/udp_test.cpp.o
+
+tests/udp_test.i: tests/udp_test.cpp.i
+.PHONY : tests/udp_test.i
+
+# target to preprocess a source file
+tests/udp_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/tests/udp_test.cpp.i
+.PHONY : tests/udp_test.cpp.i
+
+tests/udp_test.s: tests/udp_test.cpp.s
+.PHONY : tests/udp_test.s
+
+# target to generate assembly for a file
+tests/udp_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/tests/udp_test.cpp.s
+.PHONY : tests/udp_test.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -306,6 +370,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... tcp_stack"
+	@echo "... udp_test"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
@@ -327,6 +392,12 @@ help:
 	@echo "... src/net/tap.o"
 	@echo "... src/net/tap.i"
 	@echo "... src/net/tap.s"
+	@echo "... src/net/udp.o"
+	@echo "... src/net/udp.i"
+	@echo "... src/net/udp.s"
+	@echo "... tests/udp_test.o"
+	@echo "... tests/udp_test.i"
+	@echo "... tests/udp_test.s"
 .PHONY : help
 
 

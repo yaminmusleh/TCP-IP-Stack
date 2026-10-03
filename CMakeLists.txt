@@ -17,6 +17,7 @@ add_executable(tcp_stack
     src/net/ipv4.cpp
     src/net/icmpv4.cpp
     src/net/checksum.cpp
+    src/net/udp.cpp
 )
 
 target_include_directories(tcp_stack
@@ -24,6 +25,22 @@ target_include_directories(tcp_stack
         include
 )
 target_compile_options(tcp_stack PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_executable(udp_test
+    tests/udp_test.cpp
+    src/net/udp.cpp
+)
+
+target_include_directories(udp_test
+    PRIVATE
+        include
+)
+
+target_compile_options(udp_test PRIVATE
     -Wall
     -Wextra
     -Wpedantic
