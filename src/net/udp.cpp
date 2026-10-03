@@ -36,3 +36,24 @@ UdpPacket UdpPacket::parse(const std::vector<unsigned char> &data)
 
     return packet;
 }
+
+std::uint16_t UdpPacket::sourcePort() const
+{
+    return sourcePort_;
+}
+std::uint16_t UdpPacket::destinationPort() const
+{
+    return destinationPort_;
+}
+std::uint16_t UdpPacket::length() const
+{
+    return length_;
+}
+std::uint16_t UdpPacket::checksum() const
+{
+    return checksum_;
+}
+const std::vector<unsigned char> &UdpPacket::payload() const
+{
+    return payload_;
+}
