@@ -1456,11 +1456,8 @@ tcp_stack: /lib64/ld-linux-x86-64.so.2 \
   CMakeFiles/tcp_stack.dir/src/net/icmpv4.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o \
-  CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o \
-  CMakeFiles/tcp_stack.dir/tests/udp_test.cpp.o
+  CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o
 
-
-CMakeFiles/tcp_stack.dir/tests/udp_test.cpp.o:
 
 CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o:
 
