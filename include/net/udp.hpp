@@ -20,7 +20,7 @@ public:
     const std::vector<unsigned char> &payload() const;
 
 private:
-    std::vector<unsigned char> buildPseudoHeader(
+    static std::vector<unsigned char> buildPseudoHeader(
         std::uint32_t sourceIp,
         std::uint32_t destinationIp,
         std::uint16_t udpLength);
