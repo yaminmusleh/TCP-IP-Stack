@@ -47,6 +47,37 @@ UdpPacket UdpPacket::parse(const std::vector<unsigned char> &data)
     return packet;
 }
 
+std::vector<unsigned char> UdpPacket::buildPseudoHeader(std::uint32_t sourceIp, std::uint32_t destinationIp,
+                                       std::uint16_t udpLength)
+{
+    std::vector<unsigned char> pseudoHeader;
+    pseudoHeader.reserve(12);
+
+    // Source IP
+    pseudoHeader.push_back(static_cast<unsigned char>(sourceIp >> 24));
+    pseudoHeader.push_back(static_cast<unsigned char>(sourceIp >> 16));
+    pseudoHeader.push_back(static_cast<unsigned char>(sourceIp >> 8));
+    pseudoHeader.push_back(static_cast<unsigned char>(sourceIp));
+
+    // Destination IP
+    pseudoHeader.push_back(static_cast<unsigned char>(destinationIp >> 24));
+    pseudoHeader.push_back(static_cast<unsigned char>(destinationIp >> 16));
+    pseudoHeader.push_back(static_cast<unsigned char>(destinationIp >> 8));
+    pseudoHeader.push_back(static_cast<unsigned char>(destinationIp));
+
+    // Zero
+    pseudoHeader.push_back(0);
+
+    // Protocol (UDP is 17)
+    pseudoHeader.push_back(17);
+
+    // UDP Length
+    pseudoHeader.push_back(static_cast<unsigned char>(udpLength >> 8));
+    pseudoHeader.push_back(static_cast<unsigned char>(udpLength));
+
+    return pseudoHeader;
+}
+
 std::uint16_t UdpPacket::sourcePort() const
 {
     return sourcePort_;
