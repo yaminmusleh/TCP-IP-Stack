@@ -8,6 +8,8 @@ class UdpPacket
 public:
     UdpPacket(std::uint16_t sourcePort, std::uint16_t destinationPort,
               const std::vector<unsigned char> &payload);
+    
+    std::uint16_t calcChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const;
 
     static UdpPacket parse(const std::vector<unsigned char> &data);
 

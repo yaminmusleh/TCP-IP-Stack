@@ -1,5 +1,6 @@
 #include "net/udp.hpp"
 #include <stdexcept>
+#include "net/checksum.hpp"
 
 UdpPacket::UdpPacket(std::uint16_t sourcePort, std::uint16_t destinationPort,
                      const std::vector<unsigned char> &payload)
@@ -48,7 +49,7 @@ UdpPacket UdpPacket::parse(const std::vector<unsigned char> &data)
 }
 
 std::vector<unsigned char> UdpPacket::buildPseudoHeader(std::uint32_t sourceIp, std::uint32_t destinationIp,
-                                       std::uint16_t udpLength)
+                                                        std::uint16_t udpLength)
 {
     std::vector<unsigned char> pseudoHeader;
     pseudoHeader.reserve(12);
@@ -76,6 +77,45 @@ std::vector<unsigned char> UdpPacket::buildPseudoHeader(std::uint32_t sourceIp, 
     pseudoHeader.push_back(static_cast<unsigned char>(udpLength));
 
     return pseudoHeader;
+}
+
+std::uint16_t UdpPacket::calcChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const
+{
+    std::vector<unsigned char> pseudoHeader = buildPseudoHeader(sourceIp, destinationIp, length_);
+    std::vector<unsigned char> udpData;
+    udpData.reserve(length_);
+
+    // Source Port
+    udpData.push_back(static_cast<unsigned char>(sourcePort_ >> 8));
+    udpData.push_back(static_cast<unsigned char>(sourcePort_));
+
+    // Destination Port
+    udpData.push_back(static_cast<unsigned char>(destinationPort_ >> 8));
+    udpData.push_back(static_cast<unsigned char>(destinationPort_));
+
+    // Length
+    udpData.push_back(static_cast<unsigned char>(length_ >> 8));
+    udpData.push_back(static_cast<unsigned char>(length_));
+
+    // Checksum (set to 0 for calculation)
+    udpData.push_back(0);
+    udpData.push_back(0);
+
+    // Payload
+    udpData.insert(udpData.end(), payload_.begin(), payload_.end());
+
+    // Combine pseudo-header and UDP data
+    pseudoHeader.insert(pseudoHeader.end(), udpData.begin(), udpData.end());
+    
+    std::uint16_t checksum = internetChecksum(pseudoHeader);
+
+    // if udp checksum is 0 there is no checksum, so we it will return 0xFFFF
+    if (checksum == 0)
+    {
+        checksum = 0xFFFF;
+    }
+
+    return checksum;
 }
 
 std::uint16_t UdpPacket::sourcePort() const
