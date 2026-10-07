@@ -100,13 +100,15 @@ std::uint16_t UdpPacket::calcChecksum(std::uint32_t sourceIp, std::uint32_t dest
     // Checksum (set to 0 for calculation)
     udpData.push_back(0);
     udpData.push_back(0);
+    // Zeroing out these two bytes prevents garbage or previous calculation values from distorting the current mathematical sum.
 
     // Payload
     udpData.insert(udpData.end(), payload_.begin(), payload_.end());
 
     // Combine pseudo-header and UDP data
     pseudoHeader.insert(pseudoHeader.end(), udpData.begin(), udpData.end());
-    
+    // It appends the raw payload bytes onto the UDP header, and then concatenates the whole packet onto the pseudoHeader buffer to create one contiguous byte array.
+
     std::uint16_t checksum = internetChecksum(pseudoHeader);
 
     // if udp checksum is 0 there is no checksum, so we it will return 0xFFFF
@@ -114,6 +116,7 @@ std::uint16_t UdpPacket::calcChecksum(std::uint32_t sourceIp, std::uint32_t dest
     {
         checksum = 0xFFFF;
     }
+    // If the calculated checksum evaluates to 0x0000, it is mapped to 0xFFFF (which is mathematically equivalent in one's complement arithmetic) so the receiving system doesn't assume checksums were turned off.
 
     return checksum;
 }

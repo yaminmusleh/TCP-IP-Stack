@@ -25,3 +25,7 @@ std::uint16_t internetChecksum(
 
     return static_cast<std::uint16_t>(~sum);
 }
+
+// internetChecksum splits the combined buffer into 16-bit words (2 bytes each),
+// sums them up, carries over any 16-bit overflow back into the low bits,
+// and finally flips every bit (one's complement).
