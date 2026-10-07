@@ -196,6 +196,7 @@ src/net/checksum.o: src/net/checksum.cpp.o
 # target to build an object file
 src/net/checksum.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.o
 .PHONY : src/net/checksum.cpp.o
 
 src/net/checksum.i: src/net/checksum.cpp.i
@@ -204,6 +205,7 @@ src/net/checksum.i: src/net/checksum.cpp.i
 # target to preprocess a source file
 src/net/checksum.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.i
 .PHONY : src/net/checksum.cpp.i
 
 src/net/checksum.s: src/net/checksum.cpp.s
@@ -212,6 +214,7 @@ src/net/checksum.s: src/net/checksum.cpp.s
 # target to generate assembly for a file
 src/net/checksum.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.s
 .PHONY : src/net/checksum.cpp.s
 
 src/net/ethernet.o: src/net/ethernet.cpp.o

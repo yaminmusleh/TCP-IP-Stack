@@ -33,6 +33,7 @@ target_compile_options(tcp_stack PRIVATE
 add_executable(udp_test
     tests/udp_test.cpp
     src/net/udp.cpp
+    src/net/checksum.cpp
 )
 
 target_include_directories(udp_test

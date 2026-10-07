@@ -11,6 +11,8 @@ public:
     
     std::uint16_t calcChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const;
 
+    bool verifyChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const;
+
     static UdpPacket parse(const std::vector<unsigned char> &data);
 
     std::vector<unsigned char> serialize() const;
