@@ -112,23 +112,24 @@ void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
 
             std::cout << "ICMP Echo Reply sent.\n";
         }
-        else if (ipv4.protocol() == IP_PROTOCOL_UDP)
+    }
+
+    else if (ipv4.protocol() == IP_PROTOCOL_UDP)
+    {
+        UdpPacket udp = UdpPacket::parse(ipv4.payload());
+        std::cout << "UDP Packet Received.\n";
+
+        if (!udp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
         {
-            UdpPacket udp = UdpPacket::parse(ipv4.payload());
-            std::cout << "UDP Packet Received";
-
-            if (!udp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
-            {
-                std::cout << "Invalid UDP Checksum";
-                return;
-            }
-
-            std::cout << "UDP Checksum Verified";
-
-            std::cout << "Source Port: " << udp.sourcePort() << "\n";
-            std::cout << "Destination Port: " << udp.destinationPort() << "\n";
-            std::cout << "Payload Size: " << udp.payload().size() << "\n";
+            std::cout << "Invalid UDP Checksum.\n";
+            return;
         }
+
+        std::cout << "UDP Checksum Verified.\n";
+
+        std::cout << "Source Port: " << udp.sourcePort() << "\n";
+        std::cout << "Destination Port: " << udp.destinationPort() << "\n";
+        std::cout << "Payload Size: " << udp.payload().size() << "\n";
     }
 }
 int main()
