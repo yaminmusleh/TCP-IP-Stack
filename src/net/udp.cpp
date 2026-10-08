@@ -111,7 +111,6 @@ std::uint16_t UdpPacket::calcChecksum(std::uint32_t sourceIp, std::uint32_t dest
 
     std::uint16_t checksum = internetChecksum(pseudoHeader);
 
-    // if udp checksum is 0 there is no checksum, so we it will return 0xFFFF
     if (checksum == 0)
     {
         checksum = 0xFFFF;
@@ -121,6 +120,11 @@ std::uint16_t UdpPacket::calcChecksum(std::uint32_t sourceIp, std::uint32_t dest
     return checksum;
 }
 
+void UdpPacket::setChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp)
+{
+    checksum_ = calcChecksum(sourceIp, destinationIp);
+}
+
 bool UdpPacket::verifyChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const
 {
     // IPv4 allows a checksum of 0 to mean that no UDP checksum was provided.
@@ -128,13 +132,13 @@ bool UdpPacket::verifyChecksum(std::uint32_t sourceIp, std::uint32_t destination
     {
         return true;
     }
-    
+
     auto pseudoHeader = buildPseudoHeader(sourceIp, destinationIp, length_);
     auto udpData = serialize(); // Serialize the UDP packet to get the raw bytes, including the checksum field.
 
     // Combine pseudo-header and UDP data
     pseudoHeader.insert(pseudoHeader.end(), udpData.begin(), udpData.end());
-    
+
     return internetChecksum(pseudoHeader) == 0; // The checksum is valid if the one's complement sum of the pseudo-header and UDP packet (including the checksum field) equals 0.
 }
 
