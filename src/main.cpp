@@ -4,6 +4,7 @@
 #include "net/arp.hpp"
 #include "net/ipv4.hpp"
 #include "net/icmpv4.hpp"
+#include "net/udp.hpp"
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -12,6 +13,8 @@ constexpr std::uint16_t ETHERTYPE_IPV6 = 0X86DD;
 constexpr std::uint8_t IP_PROTOCOL_ICMP = 1;
 
 constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
+
+constexpr std::uint8_t IP_PROTOCOL_UDP = 17;
 
 void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t ourIp)
 {
@@ -108,6 +111,23 @@ void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
             tap.writeFrame(replyFrame);
 
             std::cout << "ICMP Echo Reply sent.\n";
+        }
+        else if (ipv4.protocol() == IP_PROTOCOL_UDP)
+        {
+            UdpPacket udp = UdpPacket::parse(ipv4.payload());
+            std::cout << "UDP Packet Received";
+
+            if (!udp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
+            {
+                std::cout << "Invalid UDP Checksum";
+                return;
+            }
+
+            std::cout << "UDP Checksum Verified";
+
+            std::cout << "Source Port: " << udp.sourcePort() << "\n";
+            std::cout << "Destination Port: " << udp.destinationPort() << "\n";
+            std::cout << "Payload Size: " << udp.payload().size() << "\n";
         }
     }
 }
