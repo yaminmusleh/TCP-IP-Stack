@@ -10,11 +10,11 @@ class ArpCache
 {
 public:
     void add(std::uint32_t ip, const MacAddress &mac);
+    // add() inserts a new mapping or updates an existing one.
 
     std::optional<MacAddress> lookup(std::uint32_t ip) const;
 
 private:
     std::unordered_map<std::uint32_t, MacAddress> entries_;
     // the IP will be the key, and the MAC address will be the value
-    // entries_ stores IP-to-MAC mappings.
 };
