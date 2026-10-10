@@ -5,6 +5,7 @@
 #include "net/ipv4.hpp"
 #include "net/icmpv4.hpp"
 #include "net/udp.hpp"
+#include "net/arp_cache.hpp"
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -16,10 +17,16 @@ constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
 
 constexpr std::uint8_t IP_PROTOCOL_UDP = 17;
 
-void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t ourIp)
+void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t ourIp, ArpCache &arpCache)
 {
     ArpPacket arp =
         ArpPacket::parse(ethernet.payload());
+
+    if (arp.senderIp() != 0) 
+    {
+        arpCache.add(arp.senderIp(), arp.senderMac());
+        // we add them because we want to cache the sender's IP and MAC address for future use.
+    }
 
     if (arp.opCode() != 1)
     {
@@ -142,6 +149,8 @@ int main()
         (0u << 8) |
         1u;
 
+    ArpCache arpCache;
+
     while (true)
     {
         auto raw_frame = tap.readFrame();
@@ -156,7 +165,7 @@ int main()
         }
         if (ethernet.etherType() == ETHERTYPE_ARP)
         {
-            ArpHandler(ethernet, tap, ourIp);
+            ArpHandler(ethernet, tap, ourIp, arpCache);
             continue;
         }
 
