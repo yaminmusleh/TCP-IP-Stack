@@ -49,6 +49,28 @@ ArpPacket ArpPacket::parse(const std::vector<unsigned char> &data)
     return packet;
 }
 
+ArpPacket ArpPacket::createRequest(const MacAddress &senderMac, std::uint32_t senderIp,
+                                   std::uint32_t targetIp)
+{
+    ArpPacket request;
+
+    request.hardware_type_ = 1; // Ethernet
+    request.protocol_type_ = 0x0800; // IPv4
+
+    request.hardware_size_ = 6; // MAC address size
+    request.protocol_size_ = 4; // IPv4 address size
+
+    request.op_code_ = 1; // ARP Request
+
+    request.sender_mac_ = senderMac;
+    request.sender_ip_ = senderIp;
+
+    request.target_mac_ = {0, 0, 0, 0, 0, 0}; // Unknown target MAC
+    request.target_ip_ = targetIp;
+
+    return request;
+}
+
 ArpPacket ArpPacket::createReply(const ArpPacket &request,
                                  const MacAddress &ourMac,
                                  std::uint32_t ourIp)
@@ -71,7 +93,6 @@ ArpPacket ArpPacket::createReply(const ArpPacket &request,
 
     return reply;
 }
-
 
 // Serializing method
 std::vector<unsigned char> ArpPacket::serialize() const

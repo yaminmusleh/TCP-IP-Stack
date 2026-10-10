@@ -11,12 +11,17 @@ class ArpPacket
 public:
     static ArpPacket parse(const std::vector<unsigned char> &data);
 
-    std::vector<unsigned char> serialize() const; //serializing
+    std::vector<unsigned char> serialize() const; // serializing
 
     static ArpPacket createReply(
         const ArpPacket &request,
         const MacAddress &ourMac,
         std::uint32_t ourIp);
+
+    static ArpPacket createRequest(
+        const MacAddress &senderMac,
+        std::uint32_t senderIp,
+        std::uint32_t targetIp);
 
     std::uint16_t hardwareType() const;
     std::uint16_t protocolType() const;
