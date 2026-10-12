@@ -18,7 +18,11 @@ constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
 
 constexpr std::uint8_t IP_PROTOCOL_UDP = 17;
 
-void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t ourIp, ArpCache &arpCache)
+void ArpHandler(const EthernetFrame &ethernet,
+                TapDevice &tap,
+                std::uint32_t ourIp,
+                const MacAddress &ourMac,
+                ArpCache &arpCache)
 {
     ArpPacket arp =
         ArpPacket::parse(ethernet.payload());
@@ -29,9 +33,15 @@ void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t our
         // we add them because we want to cache the sender's IP and MAC address for future use.
     }
 
+    if (arp.opCode() == 2)
+    {
+        std::cout << "ARP Reply Received; sender mapping cached.\n";
+        return;
+    }
+
     if (arp.opCode() != 1)
     {
-        std::cout << "Not an ARP request. Ignoring.\n";
+        std::cout << "Unknown ARP operation. Ignoring.\n";
         return;
     }
 
@@ -40,10 +50,6 @@ void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t our
         std::cout << "ARP request is not for us. Ignoring.\n";
         return;
     }
-
-    // ARP REPLY CONSTRUCTION
-    MacAddress ourMac = {
-        0x56, 0x1d, 0x27, 0x4d, 0xbf, 0x83};
 
     ArpPacket reply =
         ArpPacket::createReply(arp, ourMac, ourIp);
@@ -192,6 +198,9 @@ int main()
         (0u << 8) |
         1u;
 
+    MacAddress ourMac = {
+        0x56, 0x1d, 0x27, 0x4d, 0xbf, 0x83};
+
     ArpCache arpCache;
 
     while (true)
@@ -208,7 +217,7 @@ int main()
         }
         if (ethernet.etherType() == ETHERTYPE_ARP)
         {
-            ArpHandler(ethernet, tap, ourIp, arpCache);
+            ArpHandler(ethernet, tap, ourIp, ourMac, arpCache);
             continue;
         }
 
