@@ -6,6 +6,7 @@
 #include "net/icmpv4.hpp"
 #include "net/udp.hpp"
 #include "net/arp_cache.hpp"
+#include <optional>
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -102,6 +103,23 @@ void SendArpRequest(TapDevice &tap, MacAddress ourMac,
 
     std::cout << "ARP Request Sent!\n";
 }
+
+std::optional<MacAddress> ResolveMAC(ArpCache &arpCache, TapDevice &tap,
+                                     const MacAddress &ourMac,
+                                     std::uint32_t ourIp,
+                                     std::uint32_t targetIp)
+{
+    auto cached_Mac = arpCache.lookup(targetIp);
+
+    if (cached_Mac.has_value())
+    {
+        return cached_Mac;
+    }
+    SendArpRequest(tap, ourMac, ourIp, targetIp);
+
+    return std::nullopt;
+}
+
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
 {
     Ipv4Packet ipv4 =
