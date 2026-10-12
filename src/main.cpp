@@ -22,7 +22,7 @@ void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t our
     ArpPacket arp =
         ArpPacket::parse(ethernet.payload());
 
-    if (arp.senderIp() != 0) 
+    if (arp.senderIp() != 0)
     {
         arpCache.add(arp.senderIp(), arp.senderMac());
         // we add them because we want to cache the sender's IP and MAC address for future use.
@@ -77,6 +77,31 @@ void ArpHandler(const EthernetFrame &ethernet, TapDevice &tap, std::uint32_t our
     std::cout << "ARP Reply Sent!\n";
 }
 
+void SendArpRequest(TapDevice &tap, MacAddress ourMac,
+                    std::uint32_t ourIp, std::uint32_t targetIp)
+{
+    MacAddress broadcastMac = {
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+
+    ArpPacket arpRequest =
+        ArpPacket::createRequest(ourMac, ourIp, targetIp);
+
+    auto arpPayload = arpRequest.serialize();
+
+    std::vector<unsigned char> destinationMac(broadcastMac.begin(), broadcastMac.end());
+
+    std::vector<unsigned char> sourceMac(ourMac.begin(), ourMac.end());
+
+    auto frame = EthernetFrame::build(
+        destinationMac,
+        sourceMac,
+        ETHERTYPE_ARP,
+        arpPayload);
+
+    tap.writeFrame(frame);
+
+    std::cout << "ARP Request Sent!\n";
+}
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
 {
     Ipv4Packet ipv4 =
