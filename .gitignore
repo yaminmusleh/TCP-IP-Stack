@@ -17,3 +17,28 @@ Makefile
 
 # other
 notes.md
+
+# --- Binaries & Libraries ---
+*.exe
+*.a
+*.lib
+*.so
+*.dylib
+bin/
+lib/
+
+# --- Network Captures & Logs ---
+*.pcap
+*.cap
+*.log
+logs/
+
+# --- Debugging & Crash Dumps ---
+core
+*.core
+vgcore.*
+
+# --- OS Specific Files ---
+.DS_Store
+Thumbs.db
+Desktop.ini
