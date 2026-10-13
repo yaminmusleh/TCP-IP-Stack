@@ -23,7 +23,8 @@ void ArpHandler(const EthernetFrame &ethernet,
                 TapDevice &tap,
                 std::uint32_t ourIp,
                 const MacAddress &ourMac,
-                ArpCache &arpCache)
+                ArpCache &arpCache,
+                std::unordered_set<std::uint32_t> &pendingArp)
 {
     ArpPacket arp =
         ArpPacket::parse(ethernet.payload());
@@ -36,6 +37,7 @@ void ArpHandler(const EthernetFrame &ethernet,
 
     if (arp.opCode() == 2)
     {
+        pendingArp.erase(arp.senderIp());
         std::cout << "ARP Reply Received; sender mapping cached.\n";
         return;
     }
@@ -210,6 +212,8 @@ int main()
 
     ArpCache arpCache;
 
+    std::unordered_set<std::uint32_t> pendingArp;
+
     while (true)
     {
         auto raw_frame = tap.readFrame();
@@ -224,7 +228,7 @@ int main()
         }
         if (ethernet.etherType() == ETHERTYPE_ARP)
         {
-            ArpHandler(ethernet, tap, ourIp, ourMac, arpCache);
+            ArpHandler(ethernet, tap, ourIp, ourMac, arpCache, pendingArp);
             continue;
         }
 
