@@ -127,12 +127,17 @@ std::optional<MacAddress> ResolveMAC(ArpCache &arpCache,
         return cached_Mac;
     }
 
-    if (pendingRequests.insert(targetIp).second) // if there was a value inserted send a request
+    if (pendingRequests.insert(targetIp).second) // Send only if newly inserted
     {
         SendArpRequest(tap, ourMac, ourIp, targetIp);
     }
 
     return std::nullopt;
+
+    // Notes:
+    // 1. it does Cache Hit: If the MAC address is found in the cache, it returns the cached value.
+    // 2. Cache Miss: If the MAC address is not found in the cache, it sends an ARP request to resolve the MAC address and adds the target IP to the pendingRequests set
+    // 3. Pending Requests: The pendingRequests set is used to keep track of IP addresses for which ARP requests have been sent but not yet resolved. This prevents sending multiple ARP requests for the same IP address.
 }
 
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
