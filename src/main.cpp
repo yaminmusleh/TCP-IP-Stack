@@ -8,6 +8,7 @@
 #include "net/arp_cache.hpp"
 #include <optional>
 #include <unordered_set>
+#include <vector>
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -138,6 +139,23 @@ std::optional<MacAddress> ResolveMAC(ArpCache &arpCache,
     // 1. it does Cache Hit: If the MAC address is found in the cache, it returns the cached value.
     // 2. Cache Miss: If the MAC address is not found in the cache, it sends an ARP request to resolve the MAC address and adds the target IP to the pendingRequests set
     // 3. Pending Requests: The pendingRequests set is used to keep track of IP addresses for which ARP requests have been sent but not yet resolved. This prevents sending multiple ARP requests for the same IP address.
+}
+
+void SendIpv4Packet(TapDevice &tap,
+                    const MacAddress &ourMac,
+                    const MacAddress &destinationMac,
+                    const std::vector<unsigned char> &ipv4Payload)
+{
+    std::vector<unsigned char> destination(destinationMac.begin(), destinationMac.end());
+    std::vector<unsigned char> source(ourMac.begin(), ourMac.end());
+
+    auto frame = EthernetFrame::build(
+        destination,
+        source,
+        ETHERTYPE_IPV4,
+        ipv4Payload);
+
+    tap.writeFrame(frame);
 }
 
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)

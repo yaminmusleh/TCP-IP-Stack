@@ -394,6 +394,106 @@ CMakeFiles/tcp_stack.dir/src/net/arp.cpp.o: /home/yamenmosleh/tcp-stack/src/net/
   /usr/lib/gcc/x86_64-linux-gnu/15/include/stddef.h \
   /usr/lib/gcc/x86_64-linux-gnu/15/include/stdint.h
 
+CMakeFiles/tcp_stack.dir/src/net/arp_cache.cpp.o: /home/yamenmosleh/tcp-stack/src/net/arp_cache.cpp \
+  /home/yamenmosleh/tcp-stack/include/net/arp.hpp \
+  /home/yamenmosleh/tcp-stack/include/net/arp_cache.hpp \
+  /usr/include/c++/15/array \
+  /usr/include/c++/15/backward/binders.h \
+  /usr/include/c++/15/bit \
+  /usr/include/c++/15/bits/alloc_traits.h \
+  /usr/include/c++/15/bits/allocator.h \
+  /usr/include/c++/15/bits/concept_check.h \
+  /usr/include/c++/15/bits/cpp_type_traits.h \
+  /usr/include/c++/15/bits/cxxabi_init_exception.h \
+  /usr/include/c++/15/bits/enable_special_members.h \
+  /usr/include/c++/15/bits/erase_if.h \
+  /usr/include/c++/15/bits/exception.h \
+  /usr/include/c++/15/bits/exception_defines.h \
+  /usr/include/c++/15/bits/exception_ptr.h \
+  /usr/include/c++/15/bits/functexcept.h \
+  /usr/include/c++/15/bits/functional_hash.h \
+  /usr/include/c++/15/bits/hash_bytes.h \
+  /usr/include/c++/15/bits/hashtable.h \
+  /usr/include/c++/15/bits/hashtable_policy.h \
+  /usr/include/c++/15/bits/invoke.h \
+  /usr/include/c++/15/bits/iterator_concepts.h \
+  /usr/include/c++/15/bits/max_size_type.h \
+  /usr/include/c++/15/bits/memory_resource.h \
+  /usr/include/c++/15/bits/memoryfwd.h \
+  /usr/include/c++/15/bits/move.h \
+  /usr/include/c++/15/bits/nested_exception.h \
+  /usr/include/c++/15/bits/new_allocator.h \
+  /usr/include/c++/15/bits/node_handle.h \
+  /usr/include/c++/15/bits/predefined_ops.h \
+  /usr/include/c++/15/bits/ptr_traits.h \
+  /usr/include/c++/15/bits/range_access.h \
+  /usr/include/c++/15/bits/ranges_base.h \
+  /usr/include/c++/15/bits/ranges_cmp.h \
+  /usr/include/c++/15/bits/ranges_util.h \
+  /usr/include/c++/15/bits/refwrap.h \
+  /usr/include/c++/15/bits/requires_hosted.h \
+  /usr/include/c++/15/bits/stl_algobase.h \
+  /usr/include/c++/15/bits/stl_bvector.h \
+  /usr/include/c++/15/bits/stl_construct.h \
+  /usr/include/c++/15/bits/stl_function.h \
+  /usr/include/c++/15/bits/stl_iterator.h \
+  /usr/include/c++/15/bits/stl_iterator_base_funcs.h \
+  /usr/include/c++/15/bits/stl_iterator_base_types.h \
+  /usr/include/c++/15/bits/stl_pair.h \
+  /usr/include/c++/15/bits/stl_uninitialized.h \
+  /usr/include/c++/15/bits/stl_vector.h \
+  /usr/include/c++/15/bits/unordered_map.h \
+  /usr/include/c++/15/bits/uses_allocator.h \
+  /usr/include/c++/15/bits/uses_allocator_args.h \
+  /usr/include/c++/15/bits/utility.h \
+  /usr/include/c++/15/bits/vector.tcc \
+  /usr/include/c++/15/bits/version.h \
+  /usr/include/c++/15/compare \
+  /usr/include/c++/15/concepts \
+  /usr/include/c++/15/cstddef \
+  /usr/include/c++/15/cstdint \
+  /usr/include/c++/15/debug/assertions.h \
+  /usr/include/c++/15/debug/debug.h \
+  /usr/include/c++/15/exception \
+  /usr/include/c++/15/ext/aligned_buffer.h \
+  /usr/include/c++/15/ext/alloc_traits.h \
+  /usr/include/c++/15/ext/numeric_traits.h \
+  /usr/include/c++/15/ext/type_traits.h \
+  /usr/include/c++/15/initializer_list \
+  /usr/include/c++/15/new \
+  /usr/include/c++/15/numbers \
+  /usr/include/c++/15/optional \
+  /usr/include/c++/15/pstl/pstl_config.h \
+  /usr/include/c++/15/tuple \
+  /usr/include/c++/15/type_traits \
+  /usr/include/c++/15/typeinfo \
+  /usr/include/c++/15/unordered_map \
+  /usr/include/c++/15/vector \
+  /usr/include/features-time64.h \
+  /usr/include/features.h \
+  /usr/include/stdc-predef.h \
+  /usr/include/stdint.h \
+  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+  /usr/include/x86_64-linux-gnu/bits/long-double.h \
+  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
+  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/x86_64-linux-gnu/bits/time64.h \
+  /usr/include/x86_64-linux-gnu/bits/timesize.h \
+  /usr/include/x86_64-linux-gnu/bits/types.h \
+  /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar.h \
+  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+  /usr/include/x86_64-linux-gnu/c++/15/bits/c++allocator.h \
+  /usr/include/x86_64-linux-gnu/c++/15/bits/c++config.h \
+  /usr/include/x86_64-linux-gnu/c++/15/bits/cpu_defines.h \
+  /usr/include/x86_64-linux-gnu/c++/15/bits/os_defines.h \
+  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+  /usr/lib/gcc/x86_64-linux-gnu/15/include/stddef.h \
+  /usr/lib/gcc/x86_64-linux-gnu/15/include/stdint.h
+
 CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.o: /home/yamenmosleh/tcp-stack/src/net/checksum.cpp \
   /home/yamenmosleh/tcp-stack/include/net/checksum.hpp \
   /usr/include/c++/15/backward/binders.h \
@@ -1453,6 +1553,7 @@ tcp_stack: /lib64/ld-linux-x86-64.so.2 \
   /usr/lib/x86_64-linux-gnu/libmvec.so.1 \
   CMakeFiles/tcp_stack.dir/src/main.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/arp.cpp.o \
+  CMakeFiles/tcp_stack.dir/src/net/arp_cache.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.o \
   CMakeFiles/tcp_stack.dir/src/net/icmpv4.cpp.o \
@@ -1466,6 +1567,8 @@ CMakeFiles/tcp_stack.dir/src/net/tap.cpp.o:
 CMakeFiles/tcp_stack.dir/src/net/ethernet.cpp.o:
 
 CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.o:
+
+CMakeFiles/tcp_stack.dir/src/net/arp_cache.cpp.o:
 
 CMakeFiles/tcp_stack.dir/src/net/arp.cpp.o:
 
@@ -1523,6 +1626,16 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 
 /usr/include/string.h:
 
+/usr/include/linux/sockios.h:
+
+/usr/include/linux/openat2.h:
+
+/usr/include/linux/falloc.h:
+
+/usr/include/linux/bpf_common.h:
+
+/usr/include/fcntl.h:
+
 /usr/include/linux/posix_types.h:
 
 /usr/include/x86_64-linux-gnu/c++/15/bits/gthr-default.h:
@@ -1552,6 +1665,8 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 /usr/include/c++/15/ext/numeric_traits.h:
 
 /usr/include/c++/15/ext/atomicity.h:
+
+/usr/include/c++/15/bits/enable_special_members.h:
 
 /usr/include/c++/15/ext/alloc_traits.h:
 
@@ -1596,10 +1711,6 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 /usr/include/x86_64-linux-gnu/bits/types.h:
 
 /usr/include/c++/15/bits/utility.h:
-
-/usr/lib/x86_64-linux-gnu/libgcc_s.so.1:
-
-/usr/include/linux/close_range.h:
 
 /usr/include/c++/15/bits/string_view.tcc:
 
@@ -1659,6 +1770,8 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 
 /usr/include/stdint.h:
 
+/usr/include/c++/15/bits/node_handle.h:
+
 /usr/include/x86_64-linux-gnu/bits/openat2.h:
 
 /usr/include/features.h:
@@ -1672,8 +1785,6 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 /usr/include/c++/15/bits/stl_iterator_base_types.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/c++/15/bits/predefined_ops.h:
 
 /usr/include/c++/15/bits/uniform_int_dist.h:
 
@@ -1807,19 +1918,19 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
 
-/usr/include/linux/bpf_common.h:
-
 /usr/include/c++/15/bits/iterator_concepts.h:
 
 /usr/include/c++/15/bits/localefwd.h:
 
 /usr/include/c++/15/bits/max_size_type.h:
 
-/usr/include/linux/openat2.h:
+/usr/include/c++/15/bits/erase_if.h:
 
 /usr/include/c++/15/bits/stringfwd.h:
 
 /usr/include/net/if.h:
+
+/usr/include/c++/15/bits/hashtable_policy.h:
 
 /usr/include/c++/15/ext/string_conversions.h:
 
@@ -1863,13 +1974,13 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 
 /usr/include/x86_64-linux-gnu/asm/types.h:
 
+/usr/include/c++/15/ext/aligned_buffer.h:
+
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
 /usr/include/x86_64-linux-gnu/asm/posix_types_64.h:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
-
-/usr/include/x86_64-linux-gnu/bits/endian.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
@@ -1891,9 +2002,21 @@ CMakeFiles/tcp_stack.dir/src/net/ipv4.cpp.o:
 
 /usr/include/x86_64-linux-gnu/c++/15/bits/ctype_inline.h:
 
+/usr/include/linux/if_tun.h:
+
+/usr/include/c++/15/cstring:
+
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
 /usr/include/x86_64-linux-gnu/bits/sched.h:
 
 /usr/include/x86_64-linux-gnu/c++/15/bits/ctype_base.h:
+
+/usr/include/linux/filter.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
 
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
 
@@ -2009,6 +2132,8 @@ CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o:
 
 /usr/include/x86_64-linux-gnu/c++/15/bits/c++config.h:
 
+/usr/include/c++/15/bits/hashtable.h:
+
 /usr/include/x86_64-linux-gnu/c++/15/bits/c++locale.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/15/include/stdint.h:
@@ -2016,6 +2141,24 @@ CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o:
 /usr/lib/gcc/x86_64-linux-gnu/15/include/stdarg.h:
 
 /home/yamenmosleh/tcp-stack/src/net/arp.cpp:
+
+/usr/lib/x86_64-linux-gnu/libgcc_s.so.1:
+
+/usr/include/linux/close_range.h:
+
+/home/yamenmosleh/tcp-stack/src/net/arp_cache.cpp:
+
+/home/yamenmosleh/tcp-stack/include/net/arp_cache.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/endian.h:
+
+/usr/include/c++/15/bits/unordered_map.h:
+
+/usr/include/c++/15/bits/predefined_ops.h:
+
+/usr/include/c++/15/optional:
+
+/usr/include/c++/15/unordered_map:
 
 /usr/include/features-time64.h:
 
@@ -2064,21 +2207,3 @@ CMakeFiles/tcp_stack.dir/src/net/udp.cpp.o:
 /usr/include/asm-generic/ioctl.h:
 
 /usr/include/asm-generic/sockios.h:
-
-/usr/include/fcntl.h:
-
-/usr/include/linux/falloc.h:
-
-/usr/include/x86_64-linux-gnu/bits/time.h:
-
-/usr/include/x86_64-linux-gnu/bits/select.h:
-
-/usr/include/linux/filter.h:
-
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/c++/15/cstring:
-
-/usr/include/linux/if_tun.h:
-
-/usr/include/linux/sockios.h:
