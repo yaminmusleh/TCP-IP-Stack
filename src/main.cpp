@@ -170,7 +170,8 @@ void SendIpv4PacketWithARP(TapDevice &tap,
                            std::uint32_t ourIp,
                            std::uint32_t targetIp,
                            const std::vector<unsigned char> &ipv4Payload,
-                           std::unordered_set<std::uint32_t> &pendingRequests)
+                           std::unordered_set<std::uint32_t> &pendingRequests,
+                           std::vector<PendingPacket> &pendingPackets)
 {
     auto destinationMac = ResolveMAC(arpCache, tap, ourMac, ourIp, targetIp, pendingRequests);
 
@@ -180,7 +181,30 @@ void SendIpv4PacketWithARP(TapDevice &tap,
     }
     else
     {
-        std::cout << "ARP resolution pending for destination IP.\n";
+        pendingPackets.push_back({targetIp, ipv4Payload});
+        std::cout << "IPv4 packet queued; waiting for ARP reply.\n";
+    }
+}
+
+void FlushPendingPackets(TapDevice &tap,
+                         ArpCache &arpCache,
+                         const MacAddress ourMac,
+                         std::vector<PendingPacket> &pendingPackets)
+{
+
+    auto it = pendingPackets.begin();
+    while (it != pendingPackets.end())
+    {
+        auto destinationMac = arpCache.lookup(it->targetIp);
+        if (destinationMac.has_value())
+        {
+            SendIpv4Packet(tap, ourMac, *destinationMac, it->ipv4Payload);
+            it = pendingPackets.erase(it); // Remove the sent packet from the queue
+        }
+        else
+        {
+            ++it; // Move to the next packet if MAC address is still not resolved
+        }
     }
 }
 
@@ -263,6 +287,8 @@ int main()
 
     std::unordered_set<std::uint32_t> pendingArp;
 
+    std::vector<PendingPacket> pendingPackets;
+
     while (true)
     {
         auto raw_frame = tap.readFrame();
@@ -270,17 +296,20 @@ int main()
         EthernetFrame ethernet =
             EthernetFrame::parse(raw_frame);
 
+        // ipv4 handling branch
         if (ethernet.etherType() == ETHERTYPE_IPV4)
         {
             Ipv4Handler(ethernet, tap);
             continue;
         }
+        // arp handling branch
         if (ethernet.etherType() == ETHERTYPE_ARP)
         {
             ArpHandler(ethernet, tap, ourIp, ourMac, arpCache, pendingArp);
+            FlushPendingPackets(tap, arpCache, ourMac, pendingPackets);
             continue;
         }
-
+        // ipv6 handling branch
         if (ethernet.etherType() == ETHERTYPE_IPV6)
         {
             // ipv6 is not supported yet, so we will ignore it for now
