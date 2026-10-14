@@ -20,6 +20,12 @@ constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
 
 constexpr std::uint8_t IP_PROTOCOL_UDP = 17;
 
+struct PendingPacket
+{
+    std::uint32_t targetIp;
+    std::vector<unsigned char> ipv4Payload;
+};
+
 void ArpHandler(const EthernetFrame &ethernet,
                 TapDevice &tap,
                 std::uint32_t ourIp,
@@ -156,6 +162,26 @@ void SendIpv4Packet(TapDevice &tap,
         ipv4Payload);
 
     tap.writeFrame(frame);
+}
+
+void SendIpv4PacketWithARP(TapDevice &tap,
+                           ArpCache &arpCache,
+                           const MacAddress &ourMac,
+                           std::uint32_t ourIp,
+                           std::uint32_t targetIp,
+                           const std::vector<unsigned char> &ipv4Payload,
+                           std::unordered_set<std::uint32_t> &pendingRequests)
+{
+    auto destinationMac = ResolveMAC(arpCache, tap, ourMac, ourIp, targetIp, pendingRequests);
+
+    if (destinationMac.has_value())
+    {
+        SendIpv4Packet(tap, ourMac, *destinationMac, ipv4Payload);
+    }
+    else
+    {
+        std::cout << "ARP resolution pending for destination IP.\n";
+    }
 }
 
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
