@@ -1,6 +1,5 @@
 #include "net/ipv4.hpp"
 #include "net/checksum.hpp"
-
 #include <stdexcept>
 #include <algorithm>
 
@@ -121,6 +120,34 @@ Ipv4Packet Ipv4Packet::createReply(const Ipv4Packet &request, const std::vector<
     reply.payload_ = payload;
 
     return reply;
+}
+
+// create an outgoing IPV4 packet:
+Ipv4Packet Ipv4Packet::create(std::uint32_t sourceIp,
+                              std::uint32_t destinationIp,
+                              std::uint8_t protocol,
+                              const std::vector<unsigned char> &payload)
+{
+    if (payload.size() > 65515)
+    {
+        throw std::length_error("IPv4 payload is too large");
+    }
+    Ipv4Packet packet;
+
+    packet.version_ = 4;
+    packet.header_length_ = 5;
+    packet.tos_ = 0;
+    packet.total_length_ = static_cast<std::uint16_t>(20 + payload.size());
+    packet.identification_ = 0;
+    packet.flags_ = 0;
+    packet.fragment_offset_ = 0;
+    packet.ttl_ = 64;
+    packet.protocol_ = protocol;
+    packet.source_ip_ = sourceIp;
+    packet.destination_ip_ = destinationIp;
+    packet.payload_ = payload;
+
+    return packet;
 }
 
 std::vector<unsigned char> Ipv4Packet::serialize() const

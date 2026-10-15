@@ -8,6 +8,12 @@ public:
 
     static Ipv4Packet createReply(const Ipv4Packet &request, const std::vector<unsigned char> &payload);
 
+    static Ipv4Packet create(
+        std::uint32_t sourceIp,
+        std::uint32_t destinationIp,
+        std::uint8_t protocol,
+        const std::vector<unsigned char> &payload);
+
     std::vector<unsigned char> serialize() const;
 
     std::uint8_t version() const;
