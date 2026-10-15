@@ -186,6 +186,42 @@ void SendIpv4PacketWithARP(TapDevice &tap,
     }
 }
 
+void SendUdpPacket(
+    TapDevice &tap,
+    ArpCache &arpCache,
+    const MacAddress &ourMac,
+    std::uint32_t ourIp,
+    std::uint32_t targetIp,
+    std::uint16_t sourcePort,
+    std::uint16_t destinationPort,
+    const std::vector<unsigned char> &payload,
+    std::unordered_set<std::uint32_t> &pendingRequests,
+    std::vector<PendingPacket> &pendingPackets)
+{
+    // this function basically creates a UDP packet,
+    // calculates its checksum, wraps it in an IPv4 packet,
+    // and then sends it over the network. If the MAC address for the target IP is not known,
+    // it queues the packet for later sending after resolving the MAC address via ARP.
+
+    // we create the UDP packet
+    UdpPacket udp(sourcePort, destinationPort, payload);
+
+    // calculate the checksum for the UDP packet using both the source and destination IP addresses
+    udp.setChecksum(ourIp, targetIp);
+
+    // serialize the UDP packet to get the raw bytes
+    auto udpData = udp.serialize();
+
+    // wrap the UDP packet in an IPv4 packet
+    Ipv4Packet ipv4 = Ipv4Packet::create(ourIp, targetIp, IP_PROTOCOL_UDP, udpData);
+
+    // serialize the complete IPv4 packet to get the raw bytes
+    auto ipv4Data = ipv4.serialize();
+
+    // send immediately if the MAC address is resolved, otherwise queue it for later sending
+    SendIpv4PacketWithARP(tap, arpCache, ourMac, ourIp, targetIp, ipv4Data, pendingRequests, pendingPackets);
+}
+
 void FlushPendingPackets(TapDevice &tap,
                          ArpCache &arpCache,
                          const MacAddress ourMac,
