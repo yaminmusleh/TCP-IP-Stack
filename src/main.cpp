@@ -310,20 +310,34 @@ int main()
 {
     TapDevice tap("tap0");
 
-    std::uint32_t ourIp =
-        (10u << 24) |
-        (0u << 16) |
-        (0u << 8) |
-        1u;
+    std::uint32_t ourIp = (10u << 24) | (0u << 16) | (0u << 8) | 1u;
 
-    MacAddress ourMac = {
-        0x56, 0x1d, 0x27, 0x4d, 0xbf, 0x83};
+    MacAddress ourMac = {0x56, 0x1d, 0x27, 0x4d, 0xbf, 0x83};
 
     ArpCache arpCache;
 
     std::unordered_set<std::uint32_t> pendingArp;
 
     std::vector<PendingPacket> pendingPackets;
+
+    // send an initial UDP message to the TAP peer to demonstrate functionality
+    const std::uint32_t targetIp = (10u << 24) | (0u << 16) | (0u << 8) | 2u;
+
+    const std::vector<unsigned char> message = {
+        'H', 'e', 'l', 'l', 'o', ' ', 'f', 'r', 'o', 'm', ' ',
+        'm', 'y', ' ', 'T', 'C', 'P', '/', 'I', 'P', ' ', 's', 't', 'a', 'c', 'k'};
+
+   SendUdpPacket(
+    tap,
+    arpCache,
+    ourMac,
+    ourIp,
+    targetIp,
+    8000,  // Source UDP port
+    9000,  // Destination UDP port
+    message,
+    pendingArp,
+    pendingPackets);
 
     while (true)
     {
