@@ -9,6 +9,9 @@
 #include <optional>
 #include <unordered_set>
 #include <vector>
+#include <exception>
+#include <string>
+#include <cstdint>
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -224,7 +227,7 @@ void SendUdpPacket(
 
 void FlushPendingPackets(TapDevice &tap,
                          ArpCache &arpCache,
-                         const MacAddress ourMac,
+                         const MacAddress &ourMac,
                          std::vector<PendingPacket> &pendingPackets)
 {
 
@@ -247,7 +250,7 @@ void FlushPendingPackets(TapDevice &tap,
 void HandleUdpPayload(const UdpPacket &udp,
                       ArpCache &arpCache,
                       const Ipv4Packet &ipv4,
-                      TapDevice tap,
+                      TapDevice &tap,
                       const MacAddress &ourMac,
                       std::uint32_t ourIp,
                       std::unordered_set<std::uint32_t> &pendingArp,
@@ -297,8 +300,13 @@ void Ipv4Handler(
     std::unordered_set<std::uint32_t> &pendingArp,
     std::vector<PendingPacket> &pendingPackets)
 {
-    Ipv4Packet ipv4 =
-        Ipv4Packet::parse(ethernet.payload());
+    Ipv4Packet ipv4 = Ipv4Packet::parse(ethernet.payload());
+
+    if (ipv4.destinationIp() != ourIp)
+    {
+        std::cout << "IPv4 packet is not for us. Ignoring.\n";
+        return;
+    }
 
     std::cout << "IPv4 packet received.\n";
 
@@ -359,6 +367,7 @@ void Ipv4Handler(
         HandleUdpPayload(udp, arpCache, ipv4, tap, ourMac, ourIp, pendingArp, pendingPackets);
     }
 }
+
 int main()
 {
     TapDevice tap("tap0");
@@ -396,32 +405,40 @@ int main()
     {
         auto raw_frame = tap.readFrame();
 
-        EthernetFrame ethernet =
-            EthernetFrame::parse(raw_frame);
+        try
+        {
+            EthernetFrame ethernet =
+                EthernetFrame::parse(raw_frame);
 
-        // ipv4 handling branch
-        if (ethernet.etherType() == ETHERTYPE_IPV4)
-        {
-            Ipv4Handler(ethernet, tap, arpCache, ourMac, ourIp, pendingArp, pendingPackets);
-            continue;
+            // ipv4 handling branch
+            if (ethernet.etherType() == ETHERTYPE_IPV4)
+            {
+                Ipv4Handler(ethernet, tap, arpCache, ourMac, ourIp, pendingArp, pendingPackets);
+                continue;
+            }
+            // arp handling branch
+            if (ethernet.etherType() == ETHERTYPE_ARP)
+            {
+                ArpHandler(ethernet, tap, ourIp, ourMac, arpCache, pendingArp);
+                FlushPendingPackets(tap, arpCache, ourMac, pendingPackets);
+                continue;
+            }
+            // ipv6 handling branch
+            if (ethernet.etherType() == ETHERTYPE_IPV6)
+            {
+                // ipv6 is not supported yet, so we will ignore it for now
+                continue;
+            }
+            std::cout << "Unknown EtherType: 0x"
+                      << std::hex
+                      << ethernet.etherType()
+                      << std::dec
+                      << "\n";
         }
-        // arp handling branch
-        if (ethernet.etherType() == ETHERTYPE_ARP)
+        catch (const std::exception &e)
         {
-            ArpHandler(ethernet, tap, ourIp, ourMac, arpCache, pendingArp);
-            FlushPendingPackets(tap, arpCache, ourMac, pendingPackets);
-            continue;
+            std::cerr << "Dropping malformed packet: "
+                      << e.what() << '\n';
         }
-        // ipv6 handling branch
-        if (ethernet.etherType() == ETHERTYPE_IPV6)
-        {
-            // ipv6 is not supported yet, so we will ignore it for now
-            continue;
-        }
-        std::cout << "Unknown EtherType: 0x"
-                  << std::hex
-                  << ethernet.etherType()
-                  << std::dec
-                  << "\n";
     }
 }

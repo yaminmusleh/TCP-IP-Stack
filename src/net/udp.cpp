@@ -5,8 +5,14 @@
 UdpPacket::UdpPacket(std::uint16_t sourcePort, std::uint16_t destinationPort,
                      const std::vector<unsigned char> &payload)
     : sourcePort_(sourcePort), destinationPort_(destinationPort),
-      length_(8 + payload.size()), checksum_(0), payload_(payload)
+      length_(0), checksum_(0), payload_(payload)
 {
+    if (payload.size() > 65527)
+    {
+        throw std::length_error("UDP payload is too large.");
+    }
+
+    length_ = static_cast<std::uint16_t>(8 + payload.size());
 }
 
 UdpPacket UdpPacket::parse(const std::vector<unsigned char> &data)
@@ -33,9 +39,9 @@ UdpPacket UdpPacket::parse(const std::vector<unsigned char> &data)
         throw std::runtime_error("Invalid UDP length");
     }
 
-    if (length > data.size())
+    if (length != data.size())
     {
-        throw std::runtime_error("UDP packet is truncated");
+        throw std::runtime_error("UDP length does not match packet data size");
     }
 
     std::vector<unsigned char> payload(
