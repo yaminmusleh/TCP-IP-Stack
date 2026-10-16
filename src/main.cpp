@@ -244,7 +244,14 @@ void FlushPendingPackets(TapDevice &tap,
     }
 }
 
-void HandleUdpPayload(const UdpPacket &udp)
+void HandleUdpPayload(const UdpPacket &udp,
+                      ArpCache &arpCache,
+                      const Ipv4Packet &ipv4,
+                      TapDevice tap,
+                      const MacAddress &ourMac,
+                      std::uint32_t ourIp,
+                      std::unordered_set<std::uint32_t> &pendingArp,
+                      std::vector<PendingPacket> &pendingPackets)
 {
     // this application handles messages addressed to port 9000
     if (udp.destinationPort() != 9000)
@@ -264,9 +271,31 @@ void HandleUdpPayload(const UdpPacket &udp)
         static_cast<std::streamsize>(payload.size()));
 
     std::cout << "\n";
+
+    const std::string response = "UDP message received";
+    std::vector<unsigned char> responsePayload(response.begin(), response.end());
+
+    SendUdpPacket(
+        tap,
+        arpCache,
+        ourMac,
+        ourIp,
+        ipv4.sourceIp(),
+        9000,
+        udp.sourcePort(),
+        responsePayload,
+        pendingArp,
+        pendingPackets);
 }
 
-void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
+void Ipv4Handler(
+    EthernetFrame &ethernet,
+    TapDevice &tap,
+    ArpCache &arpCache,
+    const MacAddress &ourMac,
+    std::uint32_t ourIp,
+    std::unordered_set<std::uint32_t> &pendingArp,
+    std::vector<PendingPacket> &pendingPackets)
 {
     Ipv4Packet ipv4 =
         Ipv4Packet::parse(ethernet.payload());
@@ -326,8 +355,8 @@ void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
         std::cout << "Source Port: " << udp.sourcePort() << "\n";
         std::cout << "Destination Port: " << udp.destinationPort() << "\n";
         std::cout << "Payload Size: " << udp.payload().size() << "\n";
-        
-        HandleUdpPayload(udp);
+
+        HandleUdpPayload(udp, arpCache, ipv4, tap, ourMac, ourIp, pendingArp, pendingPackets);
     }
 }
 int main()
@@ -373,7 +402,7 @@ int main()
         // ipv4 handling branch
         if (ethernet.etherType() == ETHERTYPE_IPV4)
         {
-            Ipv4Handler(ethernet, tap);
+            Ipv4Handler(ethernet, tap, arpCache, ourMac, ourIp, pendingArp, pendingPackets);
             continue;
         }
         // arp handling branch
