@@ -244,6 +244,28 @@ void FlushPendingPackets(TapDevice &tap,
     }
 }
 
+void HandleUdpPayload(const UdpPacket &udp)
+{
+    // this application handles messages addressed to port 9000
+    if (udp.destinationPort() != 9000)
+    {
+        std::cout << "No application handler for UDP port "
+                  << udp.destinationPort() << ".\n";
+        return;
+    }
+
+    std::cout << "UDP message received on port 9000.\n";
+    std::cout << "Message: ";
+
+    const auto &payload = udp.payload();
+
+    std::cout.write(
+        reinterpret_cast<const char *>(payload.data()),
+        static_cast<std::streamsize>(payload.size()));
+
+    std::cout << "\n";
+}
+
 void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
 {
     Ipv4Packet ipv4 =
@@ -304,6 +326,8 @@ void Ipv4Handler(EthernetFrame &ethernet, TapDevice &tap)
         std::cout << "Source Port: " << udp.sourcePort() << "\n";
         std::cout << "Destination Port: " << udp.destinationPort() << "\n";
         std::cout << "Payload Size: " << udp.payload().size() << "\n";
+        
+        HandleUdpPayload(udp);
     }
 }
 int main()
@@ -327,17 +351,17 @@ int main()
         'H', 'e', 'l', 'l', 'o', ' ', 'f', 'r', 'o', 'm', ' ',
         'm', 'y', ' ', 'T', 'C', 'P', '/', 'I', 'P', ' ', 's', 't', 'a', 'c', 'k'};
 
-   SendUdpPacket(
-    tap,
-    arpCache,
-    ourMac,
-    ourIp,
-    targetIp,
-    8000,  // Source UDP port
-    9000,  // Destination UDP port
-    message,
-    pendingArp,
-    pendingPackets);
+    SendUdpPacket(
+        tap,
+        arpCache,
+        ourMac,
+        ourIp,
+        targetIp,
+        8000, // Source UDP port
+        9000, // Destination UDP port
+        message,
+        pendingArp,
+        pendingPackets);
 
     while (true)
     {
