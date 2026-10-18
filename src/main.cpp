@@ -352,13 +352,21 @@ void Ipv4Handler(
         UdpPacket udp = UdpPacket::parse(ipv4.payload());
         std::cout << "UDP Packet Received.\n";
 
-        if (!udp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
+        if (udp.checksum() == 0)
+        {
+            std::cout << "UDP checksum omitted (allowed for IPv4).\n";
+        }
+
+        else if (!udp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
         {
             std::cout << "Invalid UDP Checksum.\n";
             return;
         }
 
-        std::cout << "UDP Checksum Verified.\n";
+        else
+        {
+            std::cout << "UDP Checksum Verified.\n";
+        }
 
         std::cout << "Source Port: " << udp.sourcePort() << "\n";
         std::cout << "Destination Port: " << udp.destinationPort() << "\n";

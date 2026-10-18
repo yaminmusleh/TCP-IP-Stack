@@ -1,5 +1,6 @@
 #include "net/udp.hpp"
-
+#include <cstdint>
+#include <stdexcept>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -47,6 +48,57 @@ int main()
     auto serialized = parsedPacket.serialize();
 
     assert(serialized == raw);
+
+    const std::uint32_t sourceIp = 0x0A000001;      // 10.0.0.1
+    const std::uint32_t destinationIp = 0x0A000002; // 10.0.0.2
+
+    UdpPacket checksummedPacket(1234, 5678, payload);
+    checksummedPacket.setChecksum(sourceIp, destinationIp);
+
+    assert(checksummedPacket.checksum() != 0);
+    assert(checksummedPacket.verifyChecksum(sourceIp, destinationIp));
+
+    // Parse a packet with its checksum and verify it again
+    auto checksummedBytes = checksummedPacket.serialize();
+    auto parsedChecksummedPacket = UdpPacket::parse(checksummedBytes);
+
+    assert(parsedChecksummedPacket.verifyChecksum(sourceIp, destinationIp));
+
+    // Corrupt the payload and ensure checksum verification fails
+    checksummedBytes.back() ^= 0x01;
+    auto corruptedPacket = UdpPacket::parse(checksummedBytes);
+
+    assert(!corruptedPacket.verifyChecksum(sourceIp, destinationIp));
+
+    // Reject a packet shorter than the UDP header
+    bool shortPacketRejected = false;
+
+    try
+    {
+        UdpPacket::parse({0x00, 0x01, 0x00});
+    }
+    catch (const std::runtime_error &)
+    {
+        shortPacketRejected = true;
+    }
+
+    assert(shortPacketRejected);
+
+    // Reject a packet whose declared length doesn't match its data
+    bool invalidLengthRejected = false;
+
+    try
+    {
+        auto invalidPacket = raw;
+        invalidPacket[5] = 0x0E; // Claims length 14, but data is 13 bytes
+        UdpPacket::parse(invalidPacket);
+    }
+    catch (const std::runtime_error &)
+    {
+        invalidLengthRejected = true;
+    }
+
+    assert(invalidLengthRejected);
 
     std::cout << "UDP round-trip test passed!\n";
 
