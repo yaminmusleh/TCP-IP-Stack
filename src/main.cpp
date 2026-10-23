@@ -12,6 +12,9 @@
 #include <exception>
 #include <string>
 #include <cstdint>
+#include <chrono>
+#include <iterator>
+#include <unordered_map>
 
 constexpr std::uint16_t ETHERTYPE_IPV4 = 0X0800;
 constexpr std::uint16_t ETHERTYPE_ARP = 0X0806;
@@ -321,10 +324,10 @@ void Ipv4Handler(
         Icmpv4Packet icmp =
             Icmpv4Packet::parse(ipv4.payload());
 
-        std::cout << "ICMP Echo Request received.\n";
-
         if (icmp.type() == ICMP_ECHO_REQUEST && icmp.code() == 0)
         {
+            std::cout << "ICMP Echo Request received (id=" << icmp.identifier()
+                      << ", seq=" << icmp.sequence() << ").\n";
             Icmpv4Packet replyIcmp =
                 Icmpv4Packet::createEchoReply(icmp);
 
@@ -382,6 +385,54 @@ void Ipv4Handler(
     }
 }
 
+constexpr int ARP_MAX_ATTEMPTS = 3;
+
+// RetryPendingArp handles the Address Resolution Protocol (ARP) retry and timeout logic.
+// When your network stack wants to send an IPv4 packet to a device on the local network,
+// it needs the destination's MAC (Layer 2) address, not just its IP (Layer 3) address.
+// If the MAC address isn't already in the local cache, the stack must pause (buffer) the outgoing packets, broadcast an ARP request, and wait for a reply.
+// This function runs periodically (e.g., via a timer or event loop tick) to manage those pending lookups.
+void RetryPendingArp(TapDevice &tap,
+                     const ArpCache &arpCache,
+                     const MacAddress &ourMac,
+                     std::uint32_t ourIp,
+                     std::unordered_set<std::uint32_t> &pendingArp,
+                     std::vector<PendingPacket> &pendingPackets,
+                     std::unordered_map<std::uint32_t, int> &arpAttempts)
+{
+    for (auto it = arpAttempts.begin(); it != arpAttempts.end();)
+    {
+        it = pendingArp.count(it->first) ? std::next(it) : arpAttempts.erase(it);
+        // It checks the arpAttempts tracking map.
+        // If an IP address is no longer marked as pending (pendingArp), its counter is safely deleted to prevent memory bloat.
+    }
+
+    for (auto it = pendingArp.begin(); it != pendingArp.end();)
+    {
+        const std::uint32_t ip = *it;
+
+        if (arpCache.lookup(ip).has_value())
+        {
+            it = pendingArp.erase(it);
+            continue;
+            // Before sending a retry, it checks if the ARP cache now has the MAC address.
+        }
+
+        if (++arpAttempts[ip] > ARP_MAX_ATTEMPTS)
+        {
+            std::cout << "ARP resolution failed; dropping queued packets.\n";
+            std::erase_if(pendingPackets,
+                          [ip](const PendingPacket &p)
+                          { return p.targetIp == ip; });
+            arpAttempts.erase(ip);
+            it = pendingArp.erase(it);
+            continue;
+        }
+
+        SendArpRequest(tap, ourMac, ourIp, ip);
+        ++it;
+    }
+}
 int main()
 {
     TapDevice tap("tap0");
@@ -395,6 +446,9 @@ int main()
     std::unordered_set<std::uint32_t> pendingArp;
 
     std::vector<PendingPacket> pendingPackets;
+
+    std::unordered_map<std::uint32_t, int> arpAttempts;
+    auto lastArpTick = std::chrono::steady_clock::now();
 
     // send an initial UDP message to the TAP peer to demonstrate functionality
     const std::uint32_t targetIp = (10u << 24) | (0u << 16) | (0u << 8) | 2u;
@@ -417,6 +471,26 @@ int main()
 
     while (true)
     {
+        const auto now = std::chrono::steady_clock::now();
+        if (now - lastArpTick >= std::chrono::seconds(1))
+        {
+            lastArpTick = now;
+            try
+            {
+                RetryPendingArp(tap, arpCache, ourMac, ourIp,
+                                pendingArp, pendingPackets, arpAttempts);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "ARP retry failed: " << e.what() << '\n';
+            }
+        }
+
+        if (!tap.waitReadable(250))
+        {
+            continue;
+        }
+
         auto raw_frame = tap.readFrame();
 
         try
