@@ -57,5 +57,21 @@ public:
     const std::vector<unsigned char> &options() const;
     const std::vector<unsigned char> &payload() const;
 
+    // Sequence space consumed by this segment: payload bytes, plus 1 each for SYN and FIN.
+    std::uint32_t sequenceLength() const;
+
 private:
+    std::vector<unsigned char> serializeWithChecksum(std::uint16_t checksum) const;
+
+    std::uint16_t sourcePort_ = 0;
+    std::uint16_t destinationPort_ = 0;
+    std::uint32_t sequenceNumber_ = 0;
+    std::uint32_t acknowledgmentNumber_ = 0;
+    std::uint8_t reserved_ = 0; // low nibble of byte 12 (NS bit + reserved), preserved for checksum verification
+    std::uint8_t flags_ = 0;
+    std::uint16_t window_ = 0;
+    std::uint16_t checksum_ = 0;
+    std::uint16_t urgentPointer_ = 0;
+    std::vector<unsigned char> options_;
+    std::vector<unsigned char> payload_;
 };
