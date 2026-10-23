@@ -16,6 +16,11 @@ public:
     explicit TapDevice(const std::string &name); // explicit prevents implicit conversion to TapDevice
     ~TapDevice();
 
+    TapDevice(const TapDevice &) = delete;
+    TapDevice &operator=(const TapDevice &) = delete;
+
     std::vector<unsigned char> readFrame();
     void writeFrame(const std::vector<unsigned char> &frame);
+
+    bool waitReadable(int timeoutMs);
 };
