@@ -308,6 +308,12 @@ void Ipv4Handler(
         return;
     }
 
+    if ((ipv4.flags() & 0x1) != 0 || ipv4.fragmentOffset() != 0)
+    {
+        std::cout << "Fragmented IPv4 packet; reassembly not supported. Dropping.\n";
+        return;
+    }
+
     std::cout << "IPv4 packet received.\n";
 
     if (ipv4.protocol() == IP_PROTOCOL_ICMP)
