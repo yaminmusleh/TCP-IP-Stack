@@ -15,7 +15,8 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# other
+
+# others:
 notes.md
 
 # --- Binaries & Libraries ---
