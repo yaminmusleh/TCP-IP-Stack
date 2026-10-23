@@ -47,3 +47,5 @@ target_compile_options(udp_test PRIVATE
     -Wextra
     -Wpedantic
 )
+enable_testing()
+add_test(NAME udp_test COMMAND udp_test)
