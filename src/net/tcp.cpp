@@ -33,3 +33,18 @@ namespace
         return p;
     }
 }
+
+TcpSegment::TcpSegment(std::uint16_t sourcePort, std::uint16_t destinationPort,
+                       std::uint32_t sequenceNumber, std::uint32_t acknowledgmentNumber,
+                       std::uint8_t flags, std::uint16_t window,
+                       const std::vector<unsigned char> &payload)
+    : sourcePort_(sourcePort), destinationPort_(destinationPort),
+      sequenceNumber_(sequenceNumber), acknowledgmentNumber_(acknowledgmentNumber),
+      flags_(flags), window_(window), payload_(payload)
+{
+    // 65535 (max IPv4 total length) - 20 (IPv4 header) - 20 (minimum TCP header)
+    if (payload.size() > 65495)
+    {
+        throw std::length_error("TCP payload is too large.");
+    }
+}
