@@ -2,6 +2,7 @@
 #include "net/checksum.hpp"
 
 #include <stdexcept>
+#include <vector>
 
 namespace
 {
@@ -47,4 +48,51 @@ TcpSegment::TcpSegment(std::uint16_t sourcePort, std::uint16_t destinationPort,
     {
         throw std::length_error("TCP payload is too large.");
     }
+}
+
+TcpSegment TcpSegment::parse(const std::vector<unsigned char> &data)
+{
+    if (data.size() < 20)
+    {
+        throw std::runtime_error("TCP segment is too short");
+    }
+
+    const std::size_t headerLength = static_cast<std::size_t>(data[12] >> 4) * 4;
+
+    if (headerLength < 20)
+    {
+        throw std::runtime_error("Invalid TCP data offset");
+    }
+
+    if (headerLength > data.size())
+    {
+        throw std::runtime_error("TCP header is larger than the segment");
+    }
+
+    TcpSegment segment(0, 0, 0, 0, 0, 0);
+
+    segment.sourcePort_ = (static_cast<std::uint16_t>(data[0]) << 8) | data[1];
+    segment.destinationPort_ = (static_cast<std::uint16_t>(data[2]) << 8) | data[3];
+
+    segment.sequenceNumber_ = (static_cast<std::uint32_t>(data[4]) << 24) |
+                              (static_cast<std::uint32_t>(data[5]) << 16) |
+                              (static_cast<std::uint32_t>(data[6]) << 8) |
+                              static_cast<std::uint32_t>(data[7]);
+
+    segment.acknowledgmentNumber_ = (static_cast<std::uint32_t>(data[8]) << 24) |
+                                    (static_cast<std::uint32_t>(data[9]) << 16) |
+                                    (static_cast<std::uint32_t>(data[10]) << 8) |
+                                    static_cast<std::uint32_t>(data[11]);
+
+    segment.reserved_ = data[12] & 0x0F;
+    segment.flags_ = data[13];
+
+    segment.window_ = (static_cast<std::uint16_t>(data[14]) << 8) | data[15];
+    segment.checksum_ = (static_cast<std::uint16_t>(data[16]) << 8) | data[17];
+    segment.urgentPointer_ = (static_cast<std::uint16_t>(data[18]) << 8) | data[19];
+
+    segment.options_.assign(data.begin() + 20, data.begin() + headerLength);
+    segment.payload_.assign(data.begin() + headerLength, data.end());
+
+    return segment;
 }
