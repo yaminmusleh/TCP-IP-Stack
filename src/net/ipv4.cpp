@@ -245,3 +245,20 @@ const std::vector<unsigned char> &Ipv4Packet::payload() const
 {
     return payload_;
 }
+std::uint8_t Ipv4Packet::version() const { return version_; }
+
+std::uint8_t Ipv4Packet::headerLength() const { return header_length_; }
+
+std::uint8_t Ipv4Packet::tos() const { return tos_; }
+
+std::uint16_t Ipv4Packet::totalLength() const { return total_length_; }
+
+std::uint16_t Ipv4Packet::identification() const { return identification_; }
+
+std::uint8_t Ipv4Packet::flags() const { return flags_; }
+
+std::uint16_t Ipv4Packet::fragmentOffset() const { return fragment_offset_; }
+
+std::uint8_t Ipv4Packet::ttl() const { return ttl_; }
+
+std::uint16_t Ipv4Packet::checksum() const { return checksum_; }
