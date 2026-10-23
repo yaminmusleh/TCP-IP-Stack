@@ -36,5 +36,26 @@ public:
     void setChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp);
     bool verifyChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const;
 
+    void setMss(std::uint16_t mss); // MSS (Maximum Segment Size)
+    std::optional<std::uint16_t> mss() const;
+    // MSS defines the maximum amount of raw data (in bytes) that a device is willing to accept in a single TCP segment, excluding the TCP and IP headers.
+    // For example, on a standard Ethernet network with an MTU (Maximum Transmission Unit) of 1500 bytes,
+    // subtracting the 20-byte IP header and 20-byte TCP header leaves an MSS of 1460 bytes.
+
+    std::uint16_t sourcePort() const;
+    std::uint16_t destinationPort() const;
+    std::uint32_t sequenceNumber() const;
+    std::uint32_t acknowledgmentNumber() const;
+    std::uint8_t flags() const;
+
+    bool hasFlag(std::uint8_t flag) const;
+    std::uint16_t window() const;
+    std::uint16_t checksum() const;
+    std::uint16_t urgentPointer() const;
+
+    std::size_t headerLength() const; // bytes, including options padded to 4
+    const std::vector<unsigned char> &options() const;
+    const std::vector<unsigned char> &payload() const;
+
 private:
 };
