@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <poll.h>
 
 #include <cerrno>
 #include <cstring>
@@ -83,6 +84,31 @@ void TapDevice::writeFrame(const std::vector<unsigned char> &frame)
         throw std::runtime_error(
             "Incomplete TAP frame write");
     }
+}
+
+// TapDevice::waitReadable is a utility function used to non-blocking check or wait for incoming Layer 2 (Ethernet) packets from the operating system's TAP virtual network interface.
+bool TapDevice::waitReadable(int timeoutMs)
+{
+    pollfd pfd{};
+    pfd.fd = fd_;
+    pfd.events = POLLIN;
+    // telling the kernel that the stack is interested in knowing when data is available to read (i.e., an Ethernet frame has arrived from the host kernel).
+    int result = poll(&pfd, 1, timeoutMs); // waiting a timeout (poll)
+
+    if (result < 0)
+    {
+        if (errno == EINTR)
+        {
+            return false;
+        }
+        // iff poll() fails (result < 0), it checks if the error was caused by an interrupted system call (EINTR, such as a signal being caught). If so, it gracefully returns false.
+        throw std::runtime_error(
+            std::string("Failed to poll TAP: ") +
+            std::strerror(errno));
+        // For any other system error, it throws a descriptive runtime exception.
+    }
+    return result > 0 && (pfd.revents & POLLIN) != 0; // If result > 0, it means one or more events occurred.
+    // It verifies that POLLIN is set in pfd.revents (meaning data is actually ready to be read). If so, it returns true; otherwise, it returns false (which usually indicates a timeout occurred).
 }
 TapDevice::~TapDevice()
 {
