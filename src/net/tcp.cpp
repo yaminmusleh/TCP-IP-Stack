@@ -96,3 +96,8 @@ TcpSegment TcpSegment::parse(const std::vector<unsigned char> &data)
 
     return segment;
 }
+
+std::vector<unsigned char> TcpSegment::serializeWithChecksum(std::uint16_t checksum) const
+{
+    // will be continued...
+}
