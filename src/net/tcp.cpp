@@ -119,4 +119,35 @@ std::vector<unsigned char> TcpSegment::serializeWithChecksum(std::uint16_t check
     data[5] = static_cast<unsigned char>(sequenceNumber_ >> 16);
     data[6] = static_cast<unsigned char>(sequenceNumber_ >> 8);
     data[7] = static_cast<unsigned char>(sequenceNumber_);
+
+    // Acknowledgement number:
+    data[8] = static_cast<unsigned char>(acknowledgmentNumber_ >> 24);
+    data[9] = static_cast<unsigned char>(acknowledgmentNumber_ >> 16);
+    data[10] = static_cast<unsigned char>(acknowledgmentNumber_ >> 8);
+    data[11] = static_cast<unsigned char>(acknowledgmentNumber_);
+
+    // an important piece:
+    data[12] = static_cast<unsigned char>(((headerLength / 4) << 4) | (reserved_ & 0x0F));
+    // notes on it:
+    // headerLength / 4: Many network protocols (like IPv4) measure header lengths in 32-bit "words" (groups of 4 bytes) rather than individual bytes.
+    // Dividing by 4 converts the byte length into a word count. For example, a 20-byte header becomes 5.
+    // << 4: This shifts the bits 4 positions to the left. In binary, a byte has 8 bits (0000 0000).
+    // If our word count was 5 (0000 0101), shifting it left by 4 turns it into 0101 0000. This frees up the bottom 4 bits.
+    // reserved_ & 0x0F: This uses a bitwise AND with 0x0F (which is 0000 1111 in binary) to act as a mask.
+    // It ensures that only the lowest 4 bits of the reserved_ variable are kept, erasing anything higher to prevent it from overlapping with the header length.
+
+    // Flags:
+    data[13] = flags_;
+
+    // Window:
+    data[14] = static_cast<unsigned char>(window_ >> 8);
+    data[15] = static_cast<unsigned char>(window_);
+
+    // Checksum:
+    data[16] = static_cast<unsigned char>(checksum >> 8);
+    data[17] = static_cast<unsigned char>(checksum);
+
+    // Urge pointer:
+    data[18] = static_cast<unsigned char>(urgentPointer_ >> 8);
+    data[19] = static_cast<unsigned char>(urgentPointer_);
 }
