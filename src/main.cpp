@@ -7,6 +7,7 @@
 #include "net/udp.hpp"
 #include "net/arp_cache.hpp"
 #include "net/tcp.hpp"
+#include "net/tcp_engine.hpp"
 #include <optional>
 #include <unordered_set>
 #include <vector>
@@ -231,6 +232,24 @@ void SendUdpPacket(
     SendIpv4PacketWithARP(tap, arpCache, ourMac, ourIp, targetIp, ipv4Data, pendingRequests, pendingPackets);
 }
 
+void SendTcpSegment(TapDevice &tap,
+                    ArpCache &arpCache,
+                    const MacAddress &ourMac,
+                    std::uint32_t ourIp,
+                    std::uint32_t targetIp,
+                    TcpSegment segment,
+                    std::unordered_set<std::uint32_t> &pendingRequests,
+                    std::vector<PendingPacket> &pendingPackets)
+{
+    segment.setChecksum(ourIp, targetIp);
+
+    auto tcpData = segment.serialize();
+
+    Ipv4Packet ipv4 = Ipv4Packet::create(ourIp, targetIp, IP_PROTOCOL_TCP, tcpData);
+    auto ipv4Data = ipv4.serialize();
+    SendIpv4PacketWithARP(tap, arpCache, ourMac, ourIp, targetIp, ipv4Data, pendingRequests, pendingPackets);
+}
+
 void FlushPendingPackets(TapDevice &tap,
                          ArpCache &arpCache,
                          const MacAddress &ourMac,
@@ -304,7 +323,8 @@ void Ipv4Handler(
     const MacAddress &ourMac,
     std::uint32_t ourIp,
     std::unordered_set<std::uint32_t> &pendingArp,
-    std::vector<PendingPacket> &pendingPackets)
+    std::vector<PendingPacket> &pendingPackets,
+    TcpEngine &tcpEngine)
 {
     Ipv4Packet ipv4 = Ipv4Packet::parse(ethernet.payload());
 
@@ -410,6 +430,18 @@ void Ipv4Handler(
                   << (tcp.hasFlag(TcpSegment::PSH) ? "PSH " : "")
                   << " window=" << tcp.window()
                   << " payload=" << tcp.payload().size() << "\n";
+
+        for (const auto &out : tcpEngine.handleSegment(ipv4.sourceIp(), tcp))
+        {
+            SendTcpSegment(tap,
+                           arpCache,
+                           ourMac,
+                           ourIp,
+                           out.remoteIp,
+                           out.segment,
+                           pendingArp,
+                           pendingPackets);
+        }
     }
 }
 
@@ -475,6 +507,10 @@ int main()
 
     std::vector<PendingPacket> pendingPackets;
 
+    // TCP engine decleration:
+    TcpEngine tcpEngine;
+    tcpEngine.listen(9000);
+
     std::unordered_map<std::uint32_t, int> arpAttempts;
     auto lastArpTick = std::chrono::steady_clock::now();
 
@@ -529,7 +565,7 @@ int main()
             // ipv4 handling branch
             if (ethernet.etherType() == ETHERTYPE_IPV4)
             {
-                Ipv4Handler(ethernet, tap, arpCache, ourMac, ourIp, pendingArp, pendingPackets);
+                Ipv4Handler(ethernet, tap, arpCache, ourMac, ourIp, pendingArp, pendingPackets,tcpEngine);
                 continue;
             }
             // arp handling branch
