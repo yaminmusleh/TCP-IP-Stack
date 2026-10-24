@@ -168,3 +168,21 @@ std::vector<unsigned char> TcpSegment::serialize() const
 {
     return serializeWithChecksum(checksum_);
 }
+
+std::uint16_t TcpSegment::calcChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const
+{
+    auto segment = serializeWithChecksum(0);
+
+    if (segment.size() > 65535)
+    {
+        throw std::length_error("TCP segment is too large for a checksum");
+    }
+
+    auto buffer = buildTcpPseudoHeader(sourceIp, destinationIp, static_cast<std::uint16_t>(segment.size()));
+
+    buffer.insert(buffer.end(), segment.begin(), segment.end());
+
+    // Unlike UDP, a computed TCP checksum of 0x0000 is valid and is sent as-is.
+    return internetChecksum(buffer);
+}
+
