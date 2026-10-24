@@ -150,4 +150,21 @@ std::vector<unsigned char> TcpSegment::serializeWithChecksum(std::uint16_t check
     // Urge pointer:
     data[18] = static_cast<unsigned char>(urgentPointer_ >> 8);
     data[19] = static_cast<unsigned char>(urgentPointer_);
+
+    for (std::size_t i = 0; i < options_.size(); ++i)
+    {
+        data[20 + i] = options_[i];
+    }
+
+    for (std::size_t i = 0; i < payload_.size(); ++i)
+    {
+        data[headerLength + i] = payload_[i];
+    }
+
+    return data;
+}
+
+std::vector<unsigned char> TcpSegment::serialize() const
+{
+    return serializeWithChecksum(checksum_);
 }
