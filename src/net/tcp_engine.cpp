@@ -29,3 +29,12 @@ std::size_t TcpEngine::connectionCount() const
 {
     return connections_.size();
 }
+
+TcpSegment TcpEngine::makeSynAck(std::uint16_t localPort, std::uint16_t remotePort, const Connection &connection)
+{
+    TcpSegment synAck(localPort, remotePort, connection.iss, connection.rcvNxt, static_cast<std::uint8_t>(TcpSegment::SYN | TcpSegment::ACK), RECEIVE_WINDOW);
+
+    synAck.setMss(LOCAL_MSS);
+
+    return synAck;
+}
