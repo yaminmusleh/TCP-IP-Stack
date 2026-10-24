@@ -186,3 +186,7 @@ std::uint16_t TcpSegment::calcChecksum(std::uint32_t sourceIp, std::uint32_t des
     return internetChecksum(buffer);
 }
 
+void TcpSegment::setChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp)
+{
+    checksum_ = calcChecksum(sourceIp, destinationIp);
+}
