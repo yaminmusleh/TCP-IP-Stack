@@ -190,3 +190,19 @@ void TcpSegment::setChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp
 {
     checksum_ = calcChecksum(sourceIp, destinationIp);
 }
+
+bool TcpSegment::verifyChecksum(std::uint32_t sourceIp, std::uint32_t destinationIp) const
+{
+    auto segment = serialize();
+
+    if (segment.size() > 65535)
+    {
+        return false;
+    }
+
+    auto buffer = buildTcpPseudoHeader(sourceIp, destinationIp,
+                                       static_cast<std::uint16_t>(segment.size()));
+    buffer.insert(buffer.end(), segment.begin(), segment.end());
+
+    return internetChecksum(buffer) == 0;
+}
