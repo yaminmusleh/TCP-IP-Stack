@@ -220,6 +220,47 @@ void TcpSegment::setMss(std::uint16_t mss)
     options_.push_back(static_cast<unsigned char>(mss));
 }
 
+std::optional<std::uint16_t> TcpSegment::mss() const
+{
+    std::size_t i = 0;
+
+    while (i < options_.size())
+    {
+        const unsigned char kind = options_[i];
+
+        if (kind == 0)
+        { // end of options list
+            break;
+        }
+
+        if (kind == 1)
+        { // no opertaions
+            ++i;
+            continue;
+        }
+
+        if (i + 1 >= options_.size())
+        {
+            break;
+        }
+
+        const std::size_t length = options_[i + 1];
+
+        if (length < 2 || i + length > options_.size())
+        {
+            break; // malformed option; stop rather than read out of bounds
+        }
+        if (kind == 2 && length == 4)
+        {
+            return static_cast<std::uint16_t>((options_[i + 2] << 8) | options_[i + 3]);
+        }
+
+        i += length;
+    }
+
+    return std::nullopt;
+}
+
 std::uint16_t TcpSegment::sourcePort() const { return sourcePort_; }
 std::uint16_t TcpSegment::destinationPort() const { return destinationPort_; }
 std::uint32_t TcpSegment::sequenceNumber() const { return sequenceNumber_; }
