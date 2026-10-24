@@ -1,6 +1,8 @@
 #include "net/tcp_engine.hpp"
 
+#include <algorithm>
 #include <iostream>
+#include <utility>
 
 namespace
 {
@@ -25,6 +27,11 @@ void TcpEngine::listen(std::uint16_t port)
     listeners_.insert(port);
 }
 
+void TcpEngine::setDataHandler(DataHandler handler)
+{
+    dataHandler_ = std::move(handler);
+}
+
 std::size_t TcpEngine::connectionCount() const
 {
     return connections_.size();
@@ -44,13 +51,98 @@ std::optional<TcpState> TcpEngine::stateOf(std::uint32_t remoteIp,
     return it->second.state;
 }
 
-TcpSegment TcpEngine::makeSynAck(std::uint16_t localPort, std::uint16_t remotePort, const Connection &connection)
+TcpSegment TcpEngine::makeSynAck(std::uint16_t localPort, std::uint16_t remotePort,
+                                 const Connection &connection)
 {
-    TcpSegment synAck(localPort, remotePort, connection.iss, connection.rcvNxt, static_cast<std::uint8_t>(TcpSegment::SYN | TcpSegment::ACK), RECEIVE_WINDOW);
+    TcpSegment synAck(localPort, remotePort,
+                      connection.iss, connection.rcvNxt,
+                      static_cast<std::uint8_t>(TcpSegment::SYN | TcpSegment::ACK),
+                      RECEIVE_WINDOW);
 
     synAck.setMss(LOCAL_MSS);
 
     return synAck;
+}
+
+TcpSegment TcpEngine::makeAck(std::uint16_t localPort, std::uint16_t remotePort,
+                              const Connection &connection)
+{
+    return TcpSegment(localPort, remotePort,
+                      connection.sndNxt, connection.rcvNxt,
+                      TcpSegment::ACK, RECEIVE_WINDOW);
+}
+
+bool TcpEngine::flush(const Key &key, Connection &connection, std::vector<TcpOutgoing> &out)
+{
+    if (connection.state != TcpState::Established && connection.state != TcpState::CloseWait)
+    {
+        return false;
+    }
+
+    const std::uint32_t remoteIp = std::get<0>(key);
+    const std::uint16_t remotePort = std::get<1>(key);
+    const std::uint16_t localPort = std::get<2>(key);
+
+    const std::size_t mss = std::min<std::size_t>(
+        connection.peerMss.value_or(DEFAULT_PEER_MSS), LOCAL_MSS);
+
+    bool sent = false;
+
+    while (!connection.sendQueue.empty())
+    {
+        const std::uint32_t inFlight = connection.sndNxt - connection.sndUna;
+        const std::uint32_t space =
+            inFlight >= connection.sndWnd ? 0 : connection.sndWnd - inFlight;
+
+        if (space == 0)
+        {
+            break; // wait for the peer to open its window
+        }
+
+        const std::size_t n = std::min<std::size_t>(
+            {connection.sendQueue.size(), static_cast<std::size_t>(space), mss});
+
+        std::vector<unsigned char> chunk(
+            connection.sendQueue.begin(),
+            connection.sendQueue.begin() + static_cast<std::ptrdiff_t>(n));
+
+        connection.sendQueue.erase(
+            connection.sendQueue.begin(),
+            connection.sendQueue.begin() + static_cast<std::ptrdiff_t>(n));
+
+        std::uint8_t flags = TcpSegment::ACK;
+        if (connection.sendQueue.empty())
+        {
+            flags = static_cast<std::uint8_t>(flags | TcpSegment::PSH);
+        }
+
+        out.push_back(TcpOutgoing{
+            remoteIp,
+            TcpSegment(localPort, remotePort,
+                       connection.sndNxt, connection.rcvNxt,
+                       flags, RECEIVE_WINDOW, chunk)});
+
+        connection.sndNxt += static_cast<std::uint32_t>(n);
+        sent = true;
+    }
+
+    if (connection.finPending && !connection.finSent && connection.sendQueue.empty())
+    {
+        out.push_back(TcpOutgoing{
+            remoteIp,
+            TcpSegment(localPort, remotePort,
+                       connection.sndNxt, connection.rcvNxt,
+                       static_cast<std::uint8_t>(TcpSegment::FIN | TcpSegment::ACK),
+                       RECEIVE_WINDOW)});
+
+        connection.sndNxt += 1; // FIN consumes one sequence number
+        connection.finSent = true;
+        connection.state = TcpState::LastAck;
+        sent = true;
+        std::cout << "TCP FIN sent; waiting for final ACK.\n";
+    }
+
+    return sent;
 }
 
 std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const TcpSegment &seg)
@@ -85,6 +177,9 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
             connection.iss = static_cast<std::uint32_t>(rng_());
             connection.sndUna = connection.iss;
             connection.sndNxt = connection.iss + 1; // our SYN uses one sequence number
+            connection.sndWnd = seg.window();
+            connection.sndWl1 = seg.sequenceNumber();
+            connection.sndWl2 = connection.iss;
             connection.peerMss = seg.mss();
 
             out.push_back(TcpOutgoing{
@@ -153,10 +248,10 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
         // fall through: the ACK may also carry data or a FIN
     }
 
-    // ---- ESTABLISHED ----
+    // ---- ESTABLISHED, CLOSE-WAIT, LAST-ACK ----
     if (seg.hasFlag(TcpSegment::RST))
     {
-        // Only an exact match resets (RFC 5961); in-window-but-inexact RSTs are ignored for now.
+        // Only an exact match resets (RFC 5961).
         if (seg.sequenceNumber() == connection.rcvNxt)
         {
             std::cout << "TCP connection reset by peer.\n";
@@ -169,23 +264,115 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
     {
         // Challenge ACK (RFC 5961): a SYN on a synchronized connection is never accepted.
         out.push_back(TcpOutgoing{
-            remoteIp,
-            TcpSegment(seg.destinationPort(), seg.sourcePort(),
-                       connection.sndNxt, connection.rcvNxt,
-                       TcpSegment::ACK, RECEIVE_WINDOW)});
+            remoteIp, makeAck(seg.destinationPort(), seg.sourcePort(), connection)});
         return out;
     }
 
-    if (seg.hasFlag(TcpSegment::ACK) &&
-        seqLt(connection.sndUna, seg.acknowledgmentNumber()) &&
-        seqLeq(seg.acknowledgmentNumber(), connection.sndNxt))
+    if (!seg.hasFlag(TcpSegment::ACK))
     {
-        connection.sndUna = seg.acknowledgmentNumber();
+        return out; // synchronized states require ACK
     }
 
-    if (seg.sequenceLength() > 0)
+    const std::uint32_t ack = seg.acknowledgmentNumber();
+
+    if (seqGt(ack, connection.sndNxt))
     {
-        std::cout << "TCP data/FIN received but not handled yet.\n";
+        // acknowledges something we never sent
+        out.push_back(TcpOutgoing{
+            remoteIp, makeAck(seg.destinationPort(), seg.sourcePort(), connection)});
+        return out;
+    }
+
+    if (seqLt(connection.sndUna, ack))
+    {
+        connection.sndUna = ack;
+    }
+
+    // Window update (RFC 9293 3.10.7.4, ESTABLISHED processing)
+    if (seqLeq(connection.sndUna, ack) &&
+        (seqLt(connection.sndWl1, seg.sequenceNumber()) ||
+         (connection.sndWl1 == seg.sequenceNumber() && seqLeq(connection.sndWl2, ack))))
+    {
+        connection.sndWnd = seg.window();
+        connection.sndWl1 = seg.sequenceNumber();
+        connection.sndWl2 = ack;
+    }
+
+    if (connection.state == TcpState::LastAck)
+    {
+        if (connection.finSent && connection.sndUna == connection.sndNxt)
+        {
+            std::cout << "TCP connection closed.\n";
+            connections_.erase(it);
+            return out;
+        }
+    }
+
+    // ---- Incoming data and FIN ----
+    bool ackNeeded = false;
+    const std::uint32_t length = seg.sequenceLength();
+
+    if (length > 0)
+    {
+        ackNeeded = true; // anything consuming sequence space is always acknowledged
+
+        if (seqLeq(seg.sequenceNumber() + length, connection.rcvNxt))
+        {
+            std::cout << "TCP duplicate segment; re-ACKing.\n";
+        }
+        else if (seqGt(seg.sequenceNumber(), connection.rcvNxt))
+        {
+            std::cout << "TCP out-of-order segment dropped; duplicate ACK sent.\n";
+        }
+        else if (connection.state == TcpState::Established)
+        {
+            const auto &payload = seg.payload();
+
+            // Skip bytes we already received (retransmission overlapping new data).
+            const std::size_t skip = std::min<std::size_t>(
+                connection.rcvNxt - seg.sequenceNumber(), payload.size());
+
+            std::size_t take = std::min<std::size_t>(payload.size() - skip, RECEIVE_WINDOW);
+
+            if (connection.sendQueue.size() >= MAX_SEND_QUEUE)
+            {
+                take = 0; // apply backpressure: peer will retransmit later
+            }
+
+            if (take > 0)
+            {
+                std::vector<unsigned char> data(
+                    payload.begin() + static_cast<std::ptrdiff_t>(skip),
+                    payload.begin() + static_cast<std::ptrdiff_t>(skip + take));
+
+                connection.rcvNxt += static_cast<std::uint32_t>(take);
+
+                if (dataHandler_)
+                {
+                    auto response = dataHandler_(seg.destinationPort(), data);
+                    connection.sendQueue.insert(connection.sendQueue.end(),
+                                                response.begin(), response.end());
+                }
+            }
+
+            if (seg.hasFlag(TcpSegment::FIN) &&
+                seg.sequenceNumber() + static_cast<std::uint32_t>(payload.size()) == connection.rcvNxt)
+            {
+                connection.rcvNxt += 1; // FIN consumes one sequence number
+                connection.state = TcpState::CloseWait;
+                connection.finPending = true;
+                std::cout << "TCP FIN received; connection in CLOSE-WAIT.\n";
+            }
+        }
+    }
+
+    // Data (and our FIN, if due) carry the ACK; otherwise send a bare ACK when needed.
+    const bool sent = flush(key, connection, out);
+
+    if (ackNeeded && !sent)
+    {
+        out.push_back(TcpOutgoing{
+            remoteIp, makeAck(seg.destinationPort(), seg.sourcePort(), connection)});
     }
 
     return out;
