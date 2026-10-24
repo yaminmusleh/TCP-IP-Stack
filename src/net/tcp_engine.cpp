@@ -30,6 +30,20 @@ std::size_t TcpEngine::connectionCount() const
     return connections_.size();
 }
 
+std::optional<TcpState> TcpEngine::stateOf(std::uint32_t remoteIp,
+                                           std::uint16_t remotePort,
+                                           std::uint16_t localPort) const
+{
+    auto it = connections_.find(Key{remoteIp, remotePort, localPort});
+
+    if (it == connections_.end())
+    {
+        return std::nullopt;
+    }
+
+    return it->second.state;
+}
+
 TcpSegment TcpEngine::makeSynAck(std::uint16_t localPort, std::uint16_t remotePort, const Connection &connection)
 {
     TcpSegment synAck(localPort, remotePort, connection.iss, connection.rcvNxt, static_cast<std::uint8_t>(TcpSegment::SYN | TcpSegment::ACK), RECEIVE_WINDOW);
