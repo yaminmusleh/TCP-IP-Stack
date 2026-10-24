@@ -261,6 +261,23 @@ std::optional<std::uint16_t> TcpSegment::mss() const
     return std::nullopt;
 }
 
+std::uint32_t TcpSegment::sequenceLength() const
+{
+    std::uint32_t length = static_cast<std::uint32_t>(payload_.size());
+
+    if (hasFlag(SYN))
+    {
+        ++length;
+    }
+
+    if (hasFlag(FIN))
+    {
+        ++length;
+    }
+
+    return length;
+}
+
 std::uint16_t TcpSegment::sourcePort() const { return sourcePort_; }
 std::uint16_t TcpSegment::destinationPort() const { return destinationPort_; }
 std::uint32_t TcpSegment::sequenceNumber() const { return sequenceNumber_; }
@@ -272,3 +289,8 @@ std::uint16_t TcpSegment::checksum() const { return checksum_; }
 std::uint16_t TcpSegment::urgentPointer() const { return urgentPointer_; }
 const std::vector<unsigned char> &TcpSegment::options() const { return options_; }
 const std::vector<unsigned char> &TcpSegment::payload() const { return payload_; }
+
+std::size_t TcpSegment::headerLength() const
+{
+    return 20 + ((options_.size() + 3) & ~static_cast<std::size_t>(3));
+}
