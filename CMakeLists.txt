@@ -20,6 +20,7 @@ add_executable(tcp_stack
     src/net/checksum.cpp
     src/net/udp.cpp
     src/net/tcp.cpp
+    src/net/tcp_engine.cpp
 )
 
 target_include_directories(tcp_stack
@@ -70,3 +71,23 @@ target_compile_options(tcp_test PRIVATE
 )
 
 add_test(NAME tcp_test COMMAND tcp_test)
+
+add_executable(tcp_engine_test
+    tests/tcp_engine_test.cpp
+    src/net/tcp_engine.cpp
+    src/net/tcp.cpp
+    src/net/checksum.cpp
+)
+
+target_include_directories(tcp_engine_test
+    PRIVATE
+        include
+)
+
+target_compile_options(tcp_engine_test PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_test(NAME tcp_engine_test COMMAND tcp_engine_test)
