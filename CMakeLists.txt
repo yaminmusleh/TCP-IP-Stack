@@ -19,6 +19,7 @@ add_executable(tcp_stack
     src/net/icmpv4.cpp
     src/net/checksum.cpp
     src/net/udp.cpp
+    src/net/tcp.cpp
 )
 
 target_include_directories(tcp_stack
@@ -49,3 +50,23 @@ target_compile_options(udp_test PRIVATE
 )
 enable_testing()
 add_test(NAME udp_test COMMAND udp_test)
+
+# tcp test:
+add_executable(tcp_test
+    tests/tcp_test.cpp
+    src/net/tcp.cpp
+    src/net/checksum.cpp
+)
+
+target_include_directories(tcp_test
+    PRIVATE
+        include
+)
+
+target_compile_options(tcp_test PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_test(NAME tcp_test COMMAND tcp_test)

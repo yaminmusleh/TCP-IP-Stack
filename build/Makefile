@@ -152,6 +152,19 @@ udp_test/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/build
 .PHONY : udp_test/fast
 
+#=============================================================================
+# Target rules for targets named tcp_test
+
+# Build rule for target.
+tcp_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tcp_test
+.PHONY : tcp_test
+
+# fast build rule for target.
+tcp_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/build
+.PHONY : tcp_test/fast
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -231,6 +244,7 @@ src/net/checksum.o: src/net/checksum.cpp.o
 src/net/checksum.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.o
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/checksum.cpp.o
 .PHONY : src/net/checksum.cpp.o
 
 src/net/checksum.i: src/net/checksum.cpp.i
@@ -240,6 +254,7 @@ src/net/checksum.i: src/net/checksum.cpp.i
 src/net/checksum.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/checksum.cpp.i
 .PHONY : src/net/checksum.cpp.i
 
 src/net/checksum.s: src/net/checksum.cpp.s
@@ -249,6 +264,7 @@ src/net/checksum.s: src/net/checksum.cpp.s
 src/net/checksum.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/checksum.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/checksum.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/checksum.cpp.s
 .PHONY : src/net/checksum.cpp.s
 
 src/net/ethernet.o: src/net/ethernet.cpp.o
@@ -347,6 +363,33 @@ src/net/tap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tap.cpp.s
 .PHONY : src/net/tap.cpp.s
 
+src/net/tcp.o: src/net/tcp.cpp.o
+.PHONY : src/net/tcp.o
+
+# target to build an object file
+src/net/tcp.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tcp.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/tcp.cpp.o
+.PHONY : src/net/tcp.cpp.o
+
+src/net/tcp.i: src/net/tcp.cpp.i
+.PHONY : src/net/tcp.i
+
+# target to preprocess a source file
+src/net/tcp.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tcp.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/tcp.cpp.i
+.PHONY : src/net/tcp.cpp.i
+
+src/net/tcp.s: src/net/tcp.cpp.s
+.PHONY : src/net/tcp.s
+
+# target to generate assembly for a file
+src/net/tcp.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/tcp.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/src/net/tcp.cpp.s
+.PHONY : src/net/tcp.cpp.s
+
 src/net/udp.o: src/net/udp.cpp.o
 .PHONY : src/net/udp.o
 
@@ -373,6 +416,30 @@ src/net/udp.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_stack.dir/build.make CMakeFiles/tcp_stack.dir/src/net/udp.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/udp_test.dir/build.make CMakeFiles/udp_test.dir/src/net/udp.cpp.s
 .PHONY : src/net/udp.cpp.s
+
+tests/tcp_test.o: tests/tcp_test.cpp.o
+.PHONY : tests/tcp_test.o
+
+# target to build an object file
+tests/tcp_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/tests/tcp_test.cpp.o
+.PHONY : tests/tcp_test.cpp.o
+
+tests/tcp_test.i: tests/tcp_test.cpp.i
+.PHONY : tests/tcp_test.i
+
+# target to preprocess a source file
+tests/tcp_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/tests/tcp_test.cpp.i
+.PHONY : tests/tcp_test.cpp.i
+
+tests/tcp_test.s: tests/tcp_test.cpp.s
+.PHONY : tests/tcp_test.s
+
+# target to generate assembly for a file
+tests/tcp_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tcp_test.dir/build.make CMakeFiles/tcp_test.dir/tests/tcp_test.cpp.s
+.PHONY : tests/tcp_test.cpp.s
 
 tests/udp_test.o: tests/udp_test.cpp.o
 .PHONY : tests/udp_test.o
@@ -408,6 +475,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... tcp_stack"
+	@echo "... tcp_test"
 	@echo "... udp_test"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
@@ -433,9 +501,15 @@ help:
 	@echo "... src/net/tap.o"
 	@echo "... src/net/tap.i"
 	@echo "... src/net/tap.s"
+	@echo "... src/net/tcp.o"
+	@echo "... src/net/tcp.i"
+	@echo "... src/net/tcp.s"
 	@echo "... src/net/udp.o"
 	@echo "... src/net/udp.i"
 	@echo "... src/net/udp.s"
+	@echo "... tests/tcp_test.o"
+	@echo "... tests/tcp_test.i"
+	@echo "... tests/tcp_test.s"
 	@echo "... tests/udp_test.o"
 	@echo "... tests/udp_test.i"
 	@echo "... tests/udp_test.s"

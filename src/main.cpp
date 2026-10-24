@@ -6,6 +6,7 @@
 #include "net/icmpv4.hpp"
 #include "net/udp.hpp"
 #include "net/arp_cache.hpp"
+#include "net/tcp.hpp"
 #include <optional>
 #include <unordered_set>
 #include <vector>
@@ -25,6 +26,8 @@ constexpr std::uint8_t IP_PROTOCOL_ICMP = 1;
 constexpr std::uint8_t ICMP_ECHO_REQUEST = 8;
 
 constexpr std::uint8_t IP_PROTOCOL_UDP = 17;
+
+constexpr std::uint8_t IP_PROTOCOL_TCP = 6;
 
 struct PendingPacket
 {
@@ -382,6 +385,31 @@ void Ipv4Handler(
         std::cout << "Payload Size: " << udp.payload().size() << "\n";
 
         HandleUdpPayload(udp, arpCache, ipv4, tap, ourMac, ourIp, pendingArp, pendingPackets);
+    }
+
+    // TCP branch
+    else if (ipv4.protocol() == IP_PROTOCOL_TCP)
+    {
+        TcpSegment tcp = TcpSegment::parse(ipv4.payload());
+
+        if (!tcp.verifyChecksum(ipv4.sourceIp(), ipv4.destinationIp()))
+        {
+            std::cout << "Invalid TCP checksum. Dropping.\n";
+            return;
+        }
+
+        std::cout << "TCP segment: " << tcp.sourcePort() << " -> "
+                  << tcp.destinationPort()
+                  << " seq=" << tcp.sequenceNumber()
+                  << " ack=" << tcp.acknowledgmentNumber()
+                  << " flags="
+                  << (tcp.hasFlag(TcpSegment::SYN) ? "SYN " : "")
+                  << (tcp.hasFlag(TcpSegment::ACK) ? "ACK " : "")
+                  << (tcp.hasFlag(TcpSegment::FIN) ? "FIN " : "")
+                  << (tcp.hasFlag(TcpSegment::RST) ? "RST " : "")
+                  << (tcp.hasFlag(TcpSegment::PSH) ? "PSH " : "")
+                  << " window=" << tcp.window()
+                  << " payload=" << tcp.payload().size() << "\n";
     }
 }
 
