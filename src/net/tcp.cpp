@@ -99,5 +99,24 @@ TcpSegment TcpSegment::parse(const std::vector<unsigned char> &data)
 
 std::vector<unsigned char> TcpSegment::serializeWithChecksum(std::uint16_t checksum) const
 {
-    // will be continued...
+    const std::size_t paddedOptions = (options_.size() + 3) & ~static_cast<std::size_t>(3);
+    const std::size_t headerLength = 20 + paddedOptions;
+
+    std::vector<unsigned char> data(headerLength + payload_.size(), 0); // dynamic vector of bytes named data
+    // headerLength + payload_.size(): This calculates the total initial size of the vector.
+    // It adds a fixed header size (headerLength) to the size of an existing payload (payload_.size()) to ensure the vector is big enough to hold both.
+    // the 0 tells the c++ to fill every single byte in this newly created vector with zero
+
+    // Ports:
+    data[0] = static_cast<unsigned char>(sourcePort_ >> 8);
+    data[1] = static_cast<unsigned char>(sourcePort_);
+
+    data[2] = static_cast<unsigned char>(destinationPort_ >> 8);
+    data[3] = static_cast<unsigned char>(destinationPort_);
+
+    // Sequence number:
+    data[4] = static_cast<unsigned char>(sequenceNumber_ >> 24);
+    data[5] = static_cast<unsigned char>(sequenceNumber_ >> 16);
+    data[6] = static_cast<unsigned char>(sequenceNumber_ >> 8);
+    data[7] = static_cast<unsigned char>(sequenceNumber_);
 }
