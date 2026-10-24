@@ -219,3 +219,15 @@ void TcpSegment::setMss(std::uint16_t mss)
     options_.push_back(static_cast<unsigned char>(mss >> 8));
     options_.push_back(static_cast<unsigned char>(mss));
 }
+
+std::uint16_t TcpSegment::sourcePort() const { return sourcePort_; }
+std::uint16_t TcpSegment::destinationPort() const { return destinationPort_; }
+std::uint32_t TcpSegment::sequenceNumber() const { return sequenceNumber_; }
+std::uint32_t TcpSegment::acknowledgmentNumber() const { return acknowledgmentNumber_; }
+std::uint8_t TcpSegment::flags() const { return flags_; }
+bool TcpSegment::hasFlag(std::uint8_t flag) const { return (flags_ & flag) != 0; }
+std::uint16_t TcpSegment::window() const { return window_; }
+std::uint16_t TcpSegment::checksum() const { return checksum_; }
+std::uint16_t TcpSegment::urgentPointer() const { return urgentPointer_; }
+const std::vector<unsigned char> &TcpSegment::options() const { return options_; }
+const std::vector<unsigned char> &TcpSegment::payload() const { return payload_; }
