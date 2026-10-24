@@ -206,3 +206,16 @@ bool TcpSegment::verifyChecksum(std::uint32_t sourceIp, std::uint32_t destinatio
 
     return internetChecksum(buffer) == 0;
 }
+
+void TcpSegment::setMss(std::uint16_t mss)
+{
+    if (options_.size() + 4 > 40)
+    {
+        throw std::length_error("TCP options are full");
+    }
+
+    options_.push_back(2); // kind: Maximum Segment Size
+    options_.push_back(4); // length
+    options_.push_back(static_cast<unsigned char>(mss >> 8));
+    options_.push_back(static_cast<unsigned char>(mss));
+}
