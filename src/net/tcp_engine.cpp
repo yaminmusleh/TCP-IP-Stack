@@ -95,7 +95,7 @@ TcpSegment TcpEngine::makeRetransmission(const Key &key, const Connection &conne
 
     if (sent.fin)
     {
-        flags = static_cast<std::uint8_t>(flags | TcpSegment::ACK);
+        flags = static_cast<std::uint8_t>(flags | TcpSegment::FIN);
     }
 
     if (!sent.data.empty())
@@ -103,6 +103,7 @@ TcpSegment TcpEngine::makeRetransmission(const Key &key, const Connection &conne
         flags = static_cast<std::uint8_t>(flags | TcpSegment::PSH);
     }
 
+    // The ACK field always carries our latest rcvNxt, not the value from the original send.
     return TcpSegment(localPort, remotePort,
                       sent.seq, connection.rcvNxt,
                       flags, RECEIVE_WINDOW, sent.data);
@@ -116,28 +117,22 @@ void TcpEngine::armTimer(Connection &connection)
     }
 }
 
-void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs) // rttMs is the sample rtt: Sample RTT is a single, volatile data point
+void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs)
 {
-    if (!connection.srtt) // initialization: when the very first Round-Trip Time (RTT) measurement is taken at the start of a TCP connection
+    if (!connection.srtt)
     {
-        connection.srtt = rttMs; // The first Sample RTT becomes the baseline SRTT.
-
-        connection.rttvar = rttMs / 2; // is initialized to exactly half of that value
+        connection.srtt = rttMs;
+        connection.rttvar = rttMs / 2;
     }
     else
     {
         const std::uint64_t srtt = *connection.srtt;
         const std::uint64_t diff = srtt > rttMs ? srtt - rttMs : rttMs - srtt;
 
-        // we need smoothing formulas:
-        // connection.rttvar = ((3 * rttvar) + diff) / 4
-        // connection.srtt = ((7 * srtt) + sampleRTT) / 8 --> the sampleRTT is rttMs here
-
         connection.rttvar = (3 * connection.rttvar + diff) / 4;
         connection.srtt = (7 * srtt + rttMs) / 8;
     }
 
-    // now calculating RTO:
     // RTO = SRTT + max(G, 4 * RTTVAR), with a 1 ms clock granularity.
     const std::uint64_t rto = *connection.srtt + std::max<std::uint64_t>(4 * connection.rttvar, 1);
 
@@ -155,7 +150,8 @@ void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
     {
         SentSegment &sent = connection.unacked.front();
 
-        const std::uint32_t length = static_cast<std::uint32_t>(sent.data.size()) + (sent.syn ? 1u : 0u) + (sent.fin ? 1u : 0u);
+        const std::uint32_t length = static_cast<std::uint32_t>(sent.data.size()) +
+                                     (sent.syn ? 1u : 0u) + (sent.fin ? 1u : 0u);
         const std::uint32_t end = sent.seq + length;
 
         if (seqLeq(end, ack))
@@ -250,6 +246,10 @@ bool TcpEngine::flush(const Key &key, Connection &connection, std::vector<TcpOut
                        connection.sndNxt, connection.rcvNxt,
                        flags, RECEIVE_WINDOW, chunk)});
 
+        connection.unacked.push_back(
+            SentSegment{connection.sndNxt, chunk, false, false, now_, false});
+        armTimer(connection);
+
         connection.sndNxt += static_cast<std::uint32_t>(n);
         sent = true;
     }
@@ -262,6 +262,10 @@ bool TcpEngine::flush(const Key &key, Connection &connection, std::vector<TcpOut
                        connection.sndNxt, connection.rcvNxt,
                        static_cast<std::uint8_t>(TcpSegment::FIN | TcpSegment::ACK),
                        RECEIVE_WINDOW)});
+
+        connection.unacked.push_back(
+            SentSegment{connection.sndNxt, {}, false, true, now_, false});
+        armTimer(connection);
 
         connection.sndNxt += 1; // FIN consumes one sequence number
         connection.finSent = true;

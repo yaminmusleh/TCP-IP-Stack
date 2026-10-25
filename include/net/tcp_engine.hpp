@@ -54,6 +54,8 @@ public:
     // Process one incoming (checksum-verified) segment; returns segments to transmit.
     std::vector<TcpOutgoing> handleSegment(std::uint32_t remoteIp, const TcpSegment &segment);
 
+    // The engine never reads a clock; the caller supplies monotonic milliseconds.
+    // advanceTime() only moves the clock; tick() also fires expired retransmission timers.
     void advanceTime(std::uint64_t nowMs);
     std::vector<TcpOutgoing> tick(std::uint64_t nowMs);
 
@@ -65,6 +67,7 @@ public:
 private:
     using Key = std::tuple<std::uint32_t, std::uint16_t, std::uint16_t>; // remote ip, remote port, local port
 
+    // One sent-but-unacknowledged unit of sequence space: our SYN, a data chunk, or our FIN.
     struct SentSegment
     {
         std::uint32_t seq;
@@ -92,18 +95,10 @@ private:
         bool finSent = false;
 
         std::deque<SentSegment> unacked;
-        
         std::optional<std::uint64_t> rtoDeadline; // when the oldest unacked segment times out
-
-        std::uint64_t rto = INITIAL_RTO_MS; // rto is the time TCP waits for an ACK before retransmitting a lost packet
-
-        std::optional<std::uint64_t> srtt; // Smoothed Round-Trip Time,
-        // It represents a running, filtered average of the time it takes for a data packet to travel from the sender to the receiver
-        // and for the acknowledgment (ACK) to return.
-
-        std::uint64_t rttvar = 0; // rtt variance
-        // rtt Variance: a metric in the TCP/IP stack that measures how much the Round-Trip Time (RTT) fluctuates or "jitters" over a network connection
-
+        std::uint64_t rto = INITIAL_RTO_MS;
+        std::optional<std::uint64_t> srtt;
+        std::uint64_t rttvar = 0;
         unsigned retransmitCount = 0;
     };
 

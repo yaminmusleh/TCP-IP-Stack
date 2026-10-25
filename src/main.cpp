@@ -514,10 +514,7 @@ int main()
     tcpEngine.setDataHandler(
         [](std::uint16_t port, const std::vector<unsigned char> &data) -> std::vector<unsigned char>
         {
-            std::cout << "TCP data on port " << port << ": ";
-            std::cout.write(reinterpret_cast<const char *>(data.data()),
-                            static_cast<std::streamsize>(data.size()));
-            std::cout << "\n";
+            std::cout << "TCP data on port " << port << ": " << data.size() << " bytes\n";
             return data; // echo everything back
         });
 
