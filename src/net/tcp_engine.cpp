@@ -72,6 +72,84 @@ TcpSegment TcpEngine::makeAck(std::uint16_t localPort, std::uint16_t remotePort,
                       TcpSegment::ACK, RECEIVE_WINDOW);
 }
 
+TcpSegment TcpEngine::makeRetransmission(const Key &key, const Connection &connection,
+                                         const SentSegment &sent)
+{
+    const std::uint16_t remotePort = std::get<1>(key);
+    const std::uint16_t localPort = std::get<2>(key);
+
+    if (sent.syn)
+    {
+        return makeSynAck(localPort, remotePort, connection);
+    }
+
+    std::uint8_t flags = TcpSegment::ACK;
+
+    if (sent.fin)
+    {
+        flags = static_cast<std::uint8_t>(flags | TcpSegment::ACK);
+    }
+
+    if (!sent.data.empty())
+    {
+        flags = static_cast<std::uint8_t>(flags | TcpSegment::PSH);
+    }
+
+    return TcpSegment(localPort, remotePort,
+                      sent.seq, connection.rcvNxt,
+                      flags, RECEIVE_WINDOW, sent.data);
+}
+
+void TcpEngine::armTimer(Connection &connection)
+{
+    if (!connection.rtoDeadline)
+    {
+        connection.rtoDeadline = now_ + connection.rto;
+    }
+}
+
+void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs) // rttMs is the sample rtt: Sample RTT is a single, volatile data point
+{
+    if (connection.srtt) // initialization: when the very first Round-Trip Time (RTT) measurement is taken at the start of a TCP connection
+    {
+        connection.srtt = rttMs; // The first Sample RTT becomes the baseline SRTT.
+
+        connection.rttvar = rttMs / 2; // is initialized to exactly half of that value
+    }
+    else
+    {
+        const std::uint64_t srtt = *connection.srtt;
+        const std::uint64_t diff = srtt > rttMs ? srtt - rttMs : rttMs - srtt;
+
+        // we need smoothing formulas:
+        // connection.rttvar = ((3 * rttvar) + diff) / 4
+        // connection.srtt = ((7 * srtt) + sampleRTT) / 8 --> the sampleRTT is rttMs here
+
+        connection.rttvar = (3 * connection.rttvar + diff) / 4;
+        connection.srtt = (7 * srtt + rttMs) / 8;
+    }
+
+    // now calculating RTO:
+    // RTO = SRTT + max(G, 4 * RTTVAR), with a 1 ms clock granularity.
+    const std::uint64_t rto = *connection.srtt + std::max<std::uint64_t>(4 * connection.rttvar, 1);
+}
+
+// Called when the peer's ACK advances sndUna: drops acknowledged records, trims a partially
+// acknowledged one, takes an RTT sample (never from retransmitted data, per Karn), and
+// restarts or stops the retransmission timer.
+void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
+{
+    bool progress = false;
+
+    while (!connection.unacked.empty())
+    {
+        SentSegment &sent = connection.unacked.front();
+
+        const std::uint32_t length = static_cast<std::uint32_t>(sent.data.size()) + (sent.syn ? 1u : 0u) + (sent.fin ? 1u : 0u);
+        const std::uint32_t end = sent.seq + length;
+    }
+}
+
 bool TcpEngine::flush(const Key &key, Connection &connection, std::vector<TcpOutgoing> &out)
 {
     if (connection.state != TcpState::Established && connection.state != TcpState::CloseWait)
