@@ -147,6 +147,46 @@ void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
 
         const std::uint32_t length = static_cast<std::uint32_t>(sent.data.size()) + (sent.syn ? 1u : 0u) + (sent.fin ? 1u : 0u);
         const std::uint32_t end = sent.seq + length;
+
+        if (seqLeq(end, ack))
+        {
+            if (!sent.retransmitted)
+            {
+                sampleRtt(connection, now_ - sent.sentAt);
+            }
+
+            connection.unacked.pop_front();
+            progress = true;
+        }
+        else
+        {
+            if (seqLt(sent.seq, ack))
+            {
+                // Partial ACK of a data chunk: keep only the unacknowledged tail.
+                const std::size_t n = std::min<std::size_t>(ack - sent.seq, sent.data.size());
+
+                sent.data.erase(sent.data.begin(),
+                                sent.data.begin() + static_cast<std::ptrdiff_t>(n));
+                sent.seq += static_cast<std::uint32_t>(n);
+                sent.retransmitted = true; // its send time no longer describes this data
+                progress = true;
+            }
+            break;
+        }
+    }
+
+    if (progress)
+    {
+        connection.retransmitCount = 0;
+
+        if (connection.unacked.empty())
+        {
+            connection.rtoDeadline.reset();
+        }
+        else
+        {
+            connection.rtoDeadline = now_ + connection.rto;
+        }
     }
 }
 
@@ -223,6 +263,63 @@ bool TcpEngine::flush(const Key &key, Connection &connection, std::vector<TcpOut
     return sent;
 }
 
+std::vector<TcpOutgoing> TcpEngine::tick(std::uint64_t nowMs)
+{
+    advanceTime(nowMs);
+
+    std::vector<TcpOutgoing> out;
+
+    for (auto it = connections_.begin(); it != connections_.end();)
+    {
+        Connection &connection = it->second;
+
+        if (!connection.rtoDeadline || *connection.rtoDeadline > now_ || connection.unacked.empty())
+        {
+            ++it;
+            continue;
+        }
+
+        const std::uint32_t remoteIp = std::get<0>(it->first);
+        const std::uint16_t remotePort = std::get<1>(it->first);
+        const std::uint16_t localPort = std::get<2>(it->first);
+
+        const unsigned limit = connection.state == TcpState::SynReceived
+                                   ? MAX_SYN_RETRANSMITS
+                                   : MAX_DATA_RETRANSMITS;
+
+        if (connection.retransmitCount >= limit)
+        {
+            std::cout << "TCP retransmission limit reached; aborting connection.\n";
+
+            out.push_back(TcpOutgoing{
+                remoteIp,
+                TcpSegment(localPort, remotePort,
+                           connection.sndNxt, connection.rcvNxt,
+                           static_cast<std::uint8_t>(TcpSegment::RST | TcpSegment::ACK), 0)});
+
+            it = connections_.erase(it);
+            continue;
+        }
+
+        SentSegment &oldest = connection.unacked.front();
+        oldest.retransmitted = true;
+
+        out.push_back(TcpOutgoing{
+            remoteIp, makeRetransmission(it->first, connection, oldest)});
+
+        ++connection.retransmitCount;
+        connection.rto = std::min<std::uint64_t>(connection.rto * 2, MAX_RTO_MS);
+        connection.rtoDeadline = now_ + connection.rto;
+
+        std::cout << "TCP retransmission #" << connection.retransmitCount
+                  << " (next timeout in " << connection.rto << " ms).\n";
+
+        ++it;
+    }
+
+    return out;
+}
+
 std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const TcpSegment &seg)
 {
     std::vector<TcpOutgoing> out;
@@ -259,6 +356,10 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
             connection.sndWl1 = seg.sequenceNumber();
             connection.sndWl2 = connection.iss;
             connection.peerMss = seg.mss();
+
+            connection.unacked.push_back(
+                SentSegment{connection.iss, {}, true, false, now_, false});
+            armTimer(connection);
 
             out.push_back(TcpOutgoing{
                 remoteIp,
@@ -302,6 +403,11 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
         {
             if (seg.sequenceNumber() == connection.irs) // retransmitted SYN
             {
+                for (auto &sent : connection.unacked)
+                {
+                    sent.retransmitted = true; // no RTT sample from a resent SYN+ACK
+                }
+
                 out.push_back(TcpOutgoing{
                     remoteIp,
                     makeSynAck(seg.destinationPort(), seg.sourcePort(), connection)});
@@ -321,6 +427,7 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
         }
 
         connection.sndUna = seg.acknowledgmentNumber();
+        onAck(connection, seg.acknowledgmentNumber());
         connection.state = TcpState::Established;
         std::cout << "TCP connection established on port " << seg.destinationPort() << ".\n";
         // fall through: the ACK may also carry data or a FIN
