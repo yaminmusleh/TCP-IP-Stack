@@ -543,6 +543,15 @@ int main()
         pendingArp,
         pendingPackets);
 
+    const auto stackStart = std::chrono::steady_clock::now();
+    auto nowMs = [&stackStart]() -> std::uint64_t
+    {
+        return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - stackStart)
+                .count());
+    };
+
     while (true)
     {
         const auto now = std::chrono::steady_clock::now();
@@ -560,10 +569,25 @@ int main()
             }
         }
 
-        if (!tap.waitReadable(250))
+        try
+        {
+            for (const auto &tcpOut : tcpEngine.tick(nowMs()))
+            {
+                SendTcpSegment(tap, arpCache, ourMac, ourIp, tcpOut.remoteIp, tcpOut.segment,
+                               pendingArp, pendingPackets);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "TCP timer failed: " << e.what() << '\n';
+        }
+
+        if (!tap.waitReadable(50))
         {
             continue;
         }
+
+        tcpEngine.advanceTime(nowMs());
 
         auto raw_frame = tap.readFrame();
 

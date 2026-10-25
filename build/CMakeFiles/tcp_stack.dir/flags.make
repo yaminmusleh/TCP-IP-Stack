@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/yamenmosleh/tcp-stack/include
 
-CXX_FLAGS = -std=c++20 -Wall -Wextra -Wpedantic
+CXX_FLAGS = -g -std=c++20 -Wall -Wextra -Wpedantic
 

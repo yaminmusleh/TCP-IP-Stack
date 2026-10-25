@@ -32,6 +32,14 @@ void TcpEngine::setDataHandler(DataHandler handler)
     dataHandler_ = std::move(handler);
 }
 
+void TcpEngine::advanceTime(std::uint64_t nowMs)
+{
+    if (nowMs > now_)
+    {
+        now_ = nowMs;
+    }
+}
+
 std::size_t TcpEngine::connectionCount() const
 {
     return connections_.size();
@@ -110,7 +118,7 @@ void TcpEngine::armTimer(Connection &connection)
 
 void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs) // rttMs is the sample rtt: Sample RTT is a single, volatile data point
 {
-    if (connection.srtt) // initialization: when the very first Round-Trip Time (RTT) measurement is taken at the start of a TCP connection
+    if (!connection.srtt) // initialization: when the very first Round-Trip Time (RTT) measurement is taken at the start of a TCP connection
     {
         connection.srtt = rttMs; // The first Sample RTT becomes the baseline SRTT.
 
@@ -132,6 +140,8 @@ void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs) // rttMs 
     // now calculating RTO:
     // RTO = SRTT + max(G, 4 * RTTVAR), with a 1 ms clock granularity.
     const std::uint64_t rto = *connection.srtt + std::max<std::uint64_t>(4 * connection.rttvar, 1);
+
+    connection.rto = std::clamp<std::uint64_t>(rto, MIN_RTO_MS, MAX_RTO_MS);
 }
 
 // Called when the peer's ACK advances sndUna: drops acknowledged records, trims a partially
@@ -471,6 +481,7 @@ std::vector<TcpOutgoing> TcpEngine::handleSegment(std::uint32_t remoteIp, const 
     if (seqLt(connection.sndUna, ack))
     {
         connection.sndUna = ack;
+        onAck(connection, ack);
     }
 
     // Window update (RFC 9293 3.10.7.4, ESTABLISHED processing)

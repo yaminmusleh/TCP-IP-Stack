@@ -91,3 +91,23 @@ target_compile_options(tcp_engine_test PRIVATE
 )
 
 add_test(NAME tcp_engine_test COMMAND tcp_engine_test)
+
+add_executable(tcp_retransmit_test
+    tests/tcp_retransmit_test.cpp
+    src/net/tcp_engine.cpp
+    src/net/tcp.cpp
+    src/net/checksum.cpp
+)
+
+target_include_directories(tcp_retransmit_test
+    PRIVATE
+        include
+)
+
+target_compile_options(tcp_retransmit_test PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
+add_test(NAME tcp_retransmit_test COMMAND tcp_retransmit_test)
