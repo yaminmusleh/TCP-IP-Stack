@@ -44,6 +44,9 @@ public:
     static constexpr unsigned MAX_SYN_RETRANSMITS = 5;
     static constexpr unsigned MAX_DATA_RETRANSMITS = 8;
 
+    // Congestion control (RFC 5681 / RFC 6582 NewReno / RFC 6928 initial window).
+    static constexpr unsigned DUP_ACK_THRESHOLD = 3;
+
     // Called with in-order received bytes; the returned bytes are queued for sending back.
     using DataHandler = std::function<std::vector<unsigned char>(
         std::uint16_t localPort, const std::vector<unsigned char> &data)>;
@@ -55,7 +58,7 @@ public:
     std::vector<TcpOutgoing> handleSegment(std::uint32_t remoteIp, const TcpSegment &segment);
 
     // The engine never reads a clock; the caller supplies monotonic milliseconds.
-    // advanceTime() only moves the clock; tick() also fires expired retransmission timers.
+    // advanceTime() only moves the clock; tick() also fires retransmission and persist timers.
     void advanceTime(std::uint64_t nowMs);
     std::vector<TcpOutgoing> tick(std::uint64_t nowMs);
 
@@ -63,6 +66,14 @@ public:
     std::optional<TcpState> stateOf(std::uint32_t remoteIp,
                                     std::uint16_t remotePort,
                                     std::uint16_t localPort) const;
+
+    // Congestion state, exposed for tests and diagnostics.
+    std::optional<std::uint32_t> congestionWindow(std::uint32_t remoteIp,
+                                                  std::uint16_t remotePort,
+                                                  std::uint16_t localPort) const;
+    std::optional<std::uint32_t> slowStartThreshold(std::uint32_t remoteIp,
+                                                    std::uint16_t remotePort,
+                                                    std::uint16_t localPort) const;
 
 private:
     using Key = std::tuple<std::uint32_t, std::uint16_t, std::uint16_t>; // remote ip, remote port, local port
@@ -100,6 +111,17 @@ private:
         std::optional<std::uint64_t> srtt;
         std::uint64_t rttvar = 0;
         unsigned retransmitCount = 0;
+
+        // congestion control
+        std::uint32_t cwnd = 0;
+        std::uint32_t ssthresh = 0xFFFFFFFFu;
+        unsigned dupAcks = 0;
+        bool inRecovery = false;
+        std::uint32_t recover = 0; // highest sequence number sent when loss was detected (NewReno)
+
+        // window management
+        std::optional<std::uint64_t> persistDeadline; // when to send a zero-window probe
+        std::uint16_t lastAdvertised = RECEIVE_WINDOW;
     };
 
     static TcpSegment makeSynAck(std::uint16_t localPort, std::uint16_t remotePort,
@@ -109,13 +131,21 @@ private:
     static TcpSegment makeRetransmission(const Key &key, const Connection &connection,
                                          const SentSegment &sent);
 
-    // Sends queued data (within the peer window and MSS) and our FIN when due.
+    static std::uint32_t smss(const Connection &connection);
+    static std::uint16_t advertisedWindow(const Connection &connection);
+
+    // Sends queued data (within the peer window, congestion window and MSS) and our FIN when due.
     // Returns true if at least one segment was produced.
     bool flush(const Key &key, Connection &connection, std::vector<TcpOutgoing> &out);
 
     void onAck(Connection &connection, std::uint32_t ack);
     void sampleRtt(Connection &connection, std::uint64_t rttMs);
     void armTimer(Connection &connection);
+
+    void onNewAckCongestion(Connection &connection, std::uint32_t ack,
+                            std::uint32_t bytesAcked, bool &retransmitFront);
+    void onDupAck(Connection &connection, std::uint32_t ack, bool &retransmitFront);
+    void onTimeoutCongestion(Connection &connection);
 
     std::set<std::uint16_t> listeners_;
     std::map<Key, Connection> connections_;
