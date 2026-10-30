@@ -192,6 +192,67 @@ int main()
         assert(e.tick(4000).size() == 1);
     }
 
+    // ===== a cumulative ACK that covers retransmitted data takes no RTT sample =====
+    {
+        TcpEngine e;
+        e.listen(9000);
+        e.setDataHandler(echoHandler);
+
+        // peer MSS 100 so the 300-byte echo goes out as three segments; RTT 100 ms -> RTO 300 ms
+        e.advanceTime(0);
+        TcpSegment syn(40000, 9000, 1000, 0, SYN, 1000);
+        syn.setMss(100);
+        auto out = e.handleSegment(R, syn);
+        const std::uint32_t iss = out[0].segment.sequenceNumber();
+
+        e.advanceTime(100);
+        assert(e.handleSegment(R, seg(40000, 9000, 1001, iss + 1, ACK)).empty());
+
+        out = e.handleSegment(R, seg(40000, 9000, 1001, iss + 1, ACK | PSH, std::vector<unsigned char>(300, 'q')));
+        assert(out.size() == 3);
+
+        // the first segment is lost; the timer retransmits it (RTO doubles to 600 ms)
+        out = e.tick(400);
+        assert(out.size() == 1 && out[0].segment.sequenceNumber() == iss + 1);
+
+        // one cumulative ACK now covers the retransmission and the two segments sent behind it
+        e.advanceTime(450);
+        assert(e.handleSegment(R, seg(40000, 9000, 1301, iss + 301, ACK)).empty());
+
+        // Their 350 ms "RTT" measures the loss recovery, so it must not be used: the RTO stays at
+        // the backed-off 600 ms (sampling it twice would have inflated the RTO to about 670 ms).
+        e.advanceTime(500);
+        out = e.handleSegment(R, seg(40000, 9000, 1301, iss + 301, ACK | PSH, bytes("x")));
+        assert(out.size() == 1);
+        assert(e.tick(1099).empty());
+        assert(e.tick(1100).size() == 1);
+    }
+
+    // ===== several segments acknowledged by one ACK produce exactly one sample, from the newest =====
+    {
+        TcpEngine e;
+        e.listen(9000);
+        e.setDataHandler(echoHandler);
+
+        // handshake sample: srtt 100, rttvar 50, RTO 300 ms
+        const std::uint32_t iss = establish(e, 40000, 1000, 0, 100);
+
+        e.advanceTime(100);
+        assert(e.handleSegment(R, seg(40000, 9000, 1001, iss + 1, ACK | PSH, bytes("a"))).size() == 1);
+        e.advanceTime(150);
+        assert(e.handleSegment(R, seg(40000, 9000, 1002, iss + 1, ACK | PSH, bytes("b"))).size() == 1);
+
+        // both are acknowledged at t=250. Sampling the newest ("b", sent at 150) gives 100 ms and
+        // RTO = 100 + 4 * 37 = 248 ms; also sampling the older one (150 ms) would give 261 ms.
+        e.advanceTime(250);
+        assert(e.handleSegment(R, seg(40000, 9000, 1003, iss + 3, ACK)).empty());
+
+        e.advanceTime(300);
+        assert(e.handleSegment(R, seg(40000, 9000, 1003, iss + 3, ACK | PSH, bytes("c"))).size() == 1);
+        assert(e.tick(547).empty());
+        assert(e.tick(548).size() == 1);
+    }
+
     std::cout << "TCP retransmission test passed!\n";
     return 0;
 }

@@ -193,6 +193,8 @@ void TcpEngine::sampleRtt(Connection &connection, std::uint64_t rttMs)
 void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
 {
     bool progress = false;
+    bool ackedRetransmitted = false;
+    std::optional<std::uint64_t> newestSentAt; // send time of the newest never-retransmitted segment acked
 
     while (!connection.unacked.empty())
     {
@@ -204,9 +206,13 @@ void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
 
         if (seqLeq(end, ack))
         {
-            if (!sent.retransmitted)
+            if (sent.retransmitted)
             {
-                sampleRtt(connection, now_ - sent.sentAt);
+                ackedRetransmitted = true;
+            }
+            else
+            {
+                newestSentAt = sent.sentAt;
             }
 
             connection.unacked.pop_front();
@@ -227,6 +233,15 @@ void TcpEngine::onAck(Connection &connection, std::uint32_t ack)
             }
             break;
         }
+    }
+
+    // RFC 6298 / Karn: at most one RTT sample per ACK, taken from the newest segment it
+    // acknowledges. If the ACK covered retransmitted data, take none: segments sent behind a
+    // lost one are only acknowledged after the retransmission arrives, so their apparent RTT
+    // measures the loss recovery, not the path, and would inflate the RTO.
+    if (!ackedRetransmitted && newestSentAt)
+    {
+        sampleRtt(connection, now_ - *newestSentAt);
     }
 
     if (progress)
