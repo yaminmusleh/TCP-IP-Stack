@@ -16,9 +16,6 @@ cmake_install.cmake
 Makefile
 
 
-# others:
-notes.md
-
 # --- Binaries & Libraries ---
 *.exe
 *.a
